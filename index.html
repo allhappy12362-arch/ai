@@ -236,8 +236,6 @@ async function tryUnlock(){
     <button class="tab nav-item" onclick="nav('carousel')"><span class="t-icon">🎨</span><span>피드 만들기</span></button>
     <button class="tab nav-item" onclick="nav('thread')"><span class="t-icon">🧵</span><span>스레드 글 생성</span></button>
     <button class="tab nav-item" onclick="nav('aiimage')"><span class="t-icon">✨</span><span>AI 사진 생성</span><span class="tab-badge">NEW</span></button>
-    <div class="nav-group-label">분석</div>
-    <button class="tab nav-item" onclick="nav('analytics')"><span class="t-icon">📊</span><span>인스타그램 계정 분석</span><span class="tab-badge">NEW</span></button>
     <div class="nav-group-label">자동화</div>
     <button class="tab nav-item" onclick="nav('schedule')"><span class="t-icon">📅</span><span>자동 업로드</span></button>
     <div class="nav-group-label">희안헤어</div>
@@ -593,30 +591,6 @@ async function tryUnlock(){
     </div>
   </div>
 
-  <!-- ANALYTICS -->
-  <div class="page" id="page-analytics">
-    <div class="card" style="margin-bottom:20px">
-      <div class="card-hd">계정 분석</div>
-      <div class="card-note">Instagram ID 또는 URL을 입력하면 AI가 개선 방향을 제안합니다</div>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="analyticsUrl" placeholder="Instagram ID 또는 https://www.instagram.com/..." style="flex:1">
-        <button class="btn btn-black" onclick="analyzeAccount()">분석 시작</button>
-      </div>
-    </div>
-    <div id="analyticsResult" style="display:none">
-      <div class="stat-grid">
-        <div class="stat-card"><div class="stat-val" id="statFollowers">—</div><div class="stat-lbl">예상 팔로워</div></div>
-        <div class="stat-card"><div class="stat-val" id="statEngagement">—</div><div class="stat-lbl">평균 참여율</div></div>
-        <div class="stat-card"><div class="stat-val" id="statReach">—</div><div class="stat-lbl">평균 도달</div></div>
-        <div class="stat-card"><div class="stat-val" id="statPosts">—</div><div class="stat-lbl">권장 게시 수</div></div>
-      </div>
-      <div class="card">
-        <div class="card-hd">AI 콘텐츠 개선 제안</div>
-        <div id="analyticsSuggestion" style="font-size:14px;line-height:1.9;white-space:pre-wrap;color:var(--gray2)"></div>
-      </div>
-    </div>
-  </div>
-
   <!-- SCHEDULE -->
   <div class="page" id="page-schedule">
     <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
@@ -683,7 +657,6 @@ const PAGE_META = {
   carousel:{title:'피드 만들기',sub:'인스타그램/스레드용 슬라이드 피드를 AI로 자동 생성합니다'},
   thread:{title:'스레드 글 생성',sub:'스레드 플랫폼에 최적화된 연속 게시글을 생성합니다'},
   aiimage:{title:'AI 사진 생성',sub:'AI 헤어 모델 이미지 프롬프트를 생성합니다'},
-  analytics:{title:'계정 분석',sub:'Instagram 계정 데이터를 분석하고 개선 방향을 제안합니다'},
   schedule:{title:'자동 업로드',sub:'콘텐츠 발행 일정을 관리하고 예약 게시물을 설정합니다'},
   jaryosil:{title:'희안헤어 자료실',sub:'희안헤어 전용 자료 및 성장 나침반'},
   settings:{title:'설정',sub:'API 키 및 프로필을 설정합니다'},
@@ -983,7 +956,6 @@ function clearSampleForm(){
 function renderSamples(){
   const arr=getSamples();
   const list=document.getElementById('smplList');
-  const ref=document.getElementById('blogSampleRef');
   if(list){
     if(!arr.length){ list.innerHTML='<div style="font-size:13px;color:var(--gray3);padding:8px 0">아직 저장된 샘플이 없어요. 잘 쓰인 실제 블로그 글을 넣어보세요.</div>'; }
     else{
@@ -1157,28 +1129,6 @@ Midjourney용 영어 프롬프트 ${count}개. JSON만: [{"prompt":"영어","des
 }
 function copyPrompt(btn,enc){navigator.clipboard.writeText(decodeURIComponent(enc)).then(()=>{btn.textContent='✅ 복사됨';setTimeout(()=>btn.textContent='📋 복사',1500);});}
 
-// ANALYTICS
-async function analyzeAccount(){
-  const url=document.getElementById('analyticsUrl').value.trim();
-  if(!url){toast('Instagram ID나 URL을 입력해주세요');return;}
-  const resultEl=document.getElementById('analyticsResult');
-  resultEl.style.display='block';
-  document.getElementById('statFollowers').textContent='...';
-  document.getElementById('analyticsSuggestion').innerHTML='<div class="loading"><div class="spinner"></div> 분석 중...</div>';
-  const handle=url.replace('https://www.instagram.com/','').replace(/\//g,'');
-  const prompt=`Instagram 마케팅 전문가. 미용실 계정 @${handle} 분석 (일반 벤치마크 기준).
-JSON만: {"followers":"범위예시","engagement":"수치%","reach":"숫자","posts":"주간권장수","suggestions":"개선제안 5가지 줄바꿈으로"}`;
-  const result=await callGemini(prompt,800);
-  if(!result){resultEl.style.display='none';return;}
-  try{
-    const data=JSON.parse(result.replace(/```json|```/g,'').trim());
-    document.getElementById('statFollowers').textContent=data.followers||'—';
-    document.getElementById('statEngagement').textContent=data.engagement||'—';
-    document.getElementById('statReach').textContent=data.reach||'—';
-    document.getElementById('statPosts').textContent=data.posts||'—';
-    document.getElementById('analyticsSuggestion').textContent=data.suggestions||'';
-  }catch{document.getElementById('analyticsSuggestion').textContent=result;}
-}
 
 // CALENDAR
 const SCHEDULED=[
@@ -1205,13 +1155,6 @@ function renderCalendar(){
 
 // SETTINGS
 function checkSettingsKey(){ /* 키는 서버 관리 - 할 일 없음 */ }
-function saveSettingsKey(){
-  const k=document.getElementById('settingsApiKey').value.trim();
-  if(!k){toast('API 키를 입력해주세요');return;}
-  localStorage.setItem('gemini_key',k);
-  checkSettingsKey();
-  toast('API 키 저장됐어요 ✅');
-}
 
 
 // ===== 오버레이 편집기 =====

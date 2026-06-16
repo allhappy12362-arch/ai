@@ -117,13 +117,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.7;}
 .kw-high{background:#fef3e0;color:#9a5a00;}
 
 /* STYLE CARDS */
-.style-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.style-card{border:1.5px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all .18s;text-align:center;background:var(--white);}
-.style-card:hover{border-color:var(--black);}
-.style-card.on{border-color:var(--black);background:var(--gray6);}
-.style-preview{width:100%;aspect-ratio:3/4;border-radius:7px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:10px;overflow:hidden;}
-.sname{font-size:11.5px;font-weight:700;}
-.sdesc{font-size:10px;color:var(--gray3);margin-top:2px;}
 
 /* COLOR SWATCH */
 .color-swatch{width:28px;height:28px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:.15s;}
@@ -213,7 +206,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.7;}
   .sidebar-user{justify-content:center;padding:14px 8px;}
   .main{margin-left:64px;padding:20px 16px;}
   .col2,.frow2,.frow3,.stat-grid{grid-template-columns:1fr;}
-  .col3,.style-grid{grid-template-columns:1fr 1fr;}
+  .col3{grid-template-columns:1fr 1fr;}
 }
 </style>
 </head>
@@ -391,35 +384,6 @@ async function tryUnlock(){
           <div class="frow"><label>계정명 <span style="font-weight:400;font-size:11px;color:var(--gray3)">— 미리보기에 표시</span></label><input type="text" id="carAccount" placeholder="heean_hair"></div>
         </div>
         <div class="card">
-          <div class="card-hd">템플릿</div>
-          <div class="style-grid" id="styleGrid">
-            <div class="style-card on" onclick="pickStyle(this,'화학단')">
-              <div class="style-preview" style="background:linear-gradient(135deg,#1a1a1a,#3a3a3a);color:rgba(255,255,255,.7)">다크</div>
-              <div class="sname">화학단 감조형</div><div class="sdesc">어둡고 감성적</div>
-            </div>
-            <div class="style-card" onclick="pickStyle(this,'리스트')">
-              <div class="style-preview" style="background:#f9f7f3;color:#aaa">리스트</div>
-              <div class="sname">리스트 스타일</div><div class="sdesc">깔끔한 정보형</div>
-            </div>
-            <div class="style-card" onclick="pickStyle(this,'퀴즈')">
-              <div class="style-preview" style="background:#fff;color:#bbb">퀴즈</div>
-              <div class="sname">퀴즈/인터랙티브</div><div class="sdesc">참여 유도형</div>
-            </div>
-            <div class="style-card" onclick="pickStyle(this,'미니멀')">
-              <div class="style-preview" style="background:#fafafa;color:#bbb;font-size:20px">Aa</div>
-              <div class="sname">미니멀</div><div class="sdesc">텍스트 중심</div>
-            </div>
-            <div class="style-card" onclick="pickStyle(this,'스토리텔링')">
-              <div class="style-preview" style="background:linear-gradient(135deg,#c4a96a,#e8c98a);color:rgba(255,255,255,.9)">스토리</div>
-              <div class="sname">스토리텔링</div><div class="sdesc">감성 내러티브</div>
-            </div>
-            <div class="style-card" onclick="pickStyle(this,'힙')">
-              <div class="style-preview" style="background:#0f0f1a;color:#a0a0ff;font-size:18px">힙</div>
-              <div class="sname">힙/올루투</div><div class="sdesc">트렌디 무드</div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
           <div class="card-hd">배경 이미지 템플릿</div>
           <div class="card-note">피드 배경으로 쓸 이미지를 골라보세요 (없음 = 단색 배경)</div>
           <div id="tmplGallery" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div>
@@ -459,6 +423,7 @@ async function tryUnlock(){
             <div style="color:var(--gray3);font-size:13px;text-align:center"><div style="font-size:28px;margin-bottom:8px">🎨</div>설정 후 생성하기를 눌러주세요</div>
           </div>
           <div id="carResultActions" style="display:none;margin-top:12px">
+            <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="ovToggle()">🎨 사진·텍스트 얹기</button>
             <button class="btn btn-black" style="width:100%" onclick="ovDownload()">💾 이미지로 저장</button>
           </div>
 
@@ -650,7 +615,7 @@ const PAGE_META = {
   settings:{title:'설정',sub:'API 키 및 프로필을 설정합니다'},
 };
 
-let carState = {style:'화학단', bgColor:'#2c3526', txtColor:'#ffffff', bgImg:null, slides:[], currentSlide:0};
+let carState = {bgColor:'#2c3526', txtColor:'#ffffff', bgImg:null, slides:[], currentSlide:0};
 let chipState = {carCh:'인스타그램', blogLen:'중장문'};
 
 function getKey(){ return localStorage.getItem('gemini_key')||''; }
@@ -666,6 +631,7 @@ function nav(page){
   if(page==='schedule') renderCalendar();
   if(page==='settings') checkSettingsKey();
   if(page==='blog') renderSamples();
+  if(page==='carousel') renderCarouselSlide();
 
   document.getElementById('pageHd').style.display = (page==='jaryosil') ? 'none' : 'block';
 }
@@ -1027,10 +993,6 @@ JSON만: [{"label":"비포","prompt":"english prompt"},{"label":"시술과정","
 }
 
 // CAROUSEL
-function pickStyle(el,style){
-  document.querySelectorAll('.style-card').forEach(c=>c.classList.remove('on'));
-  el.classList.add('on'); carState.style=style;
-}
 function pickColor(el,type,color){
   el.closest('div').querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('on'));
   el.classList.add('on');
@@ -1045,9 +1007,9 @@ async function generateCarousel(){
   carState.topic=topic; carState.ch=ch;
   carState.shop=(document.getElementById('carAccount').value.trim()||'heean_hair').replace(/^@/,'');
   document.getElementById('carPreview').innerHTML='<div class="loading"><div class="spinner"></div> 피드 생성 중...</div>';
-  const prompt=`너는 HEEAN HAIR(헤어 살롱) 인스타 카드뉴스 카피라이터다. 주제:"${topic}", 분야:${ch}, 스타일:${carState.style}, 톤:${tone}, 슬라이드 ${slides}장.
+  const prompt=`너는 HEEAN HAIR(헤어 살롱) 인스타 카드뉴스 카피라이터다. 주제:"${topic}", 분야:${ch}, 톤:${tone}, 슬라이드 ${slides}장.
 
-[전체 흐름] 첫 장은 강한 훅(스크롤을 멈추게), 가운데 장들은 문제→관점전환→핵심정보 순으로 한 장에 한 가지만, 끝에서 두 번째 장은 실행 체크리스트나 핵심 요약, 마지막 장은 자연스러운 CTA(저장/댓글/예약 유도 중 하나)로 마무리한다.
+[전체 흐름] 첫 장은 강한 훅(스크롤을 멈추게), 가운데 장들은 한 장에 핵심 하나씩 자연스럽게 풀고, 마지막 장은 자연스러운 CTA(저장/댓글/예약 유도 중 하나)로 마무리한다. 톤(${tone})을 글 전체에 일관되게 반영하라.
 
 [글쓰기 규칙]
 - 모든 글자는 한국어로만.
@@ -1057,27 +1019,38 @@ async function generateCarousel(){
 - title은 한 줄 핵심 헤드라인, body는 2~3줄 이내로 짧게.
 - 첫 장 title은 특히 날카롭게(궁금하게 만들 것).
 
-[출력 형식] 설명·머리말 없이 JSON 배열만:
-[{"slide":1,"title":"제목","body":"본문 2-3줄"},...]`;
-  const result=await callGemini(prompt,1000);
+[인스타 캡션] 슬라이드와 별개로, 게시물 본문 캡션도 작성하라. 첫 문장은 시선을 끄는 한 줄, 이어서 2~4줄로 핵심을 풀고, 마지막에 자연스러운 행동 유도(저장/댓글/DM/프로필 예약 링크 중 하나). 마지막 줄에 관련 해시태그 8~12개(지역명·시술명 포함). 이모지는 과하지 않게 1~3개만.
+
+[출력 형식] 설명·머리말 없이 JSON만. slides 배열과 caption 문자열을 포함:
+{"slides":[{"slide":1,"title":"제목","body":"본문 2-3줄"}],"caption":"캡션 본문\\n\\n#해시태그 #모음"}`;
+  const result=await callGemini(prompt,1400);
   if(!result){document.getElementById('carPreview').innerHTML='<div style="color:var(--ink3);font-size:13px;text-align:center;padding:40px">생성 실패. 다시 시도해주세요.</div>';return;}
   try{
-    carState.slides=JSON.parse(result.replace(/```json|```/g,'').trim());
+    const parsed=JSON.parse(result.replace(/```json|```/g,'').trim());
+    carState.slides = Array.isArray(parsed) ? parsed : (parsed.slides||[]);
+    carState.caption = Array.isArray(parsed) ? '' : (parsed.caption||'');
     carState.currentSlide=0;
     renderCarouselSlide();
     document.getElementById('carResultActions').style.display='block';
   }catch{toast('오류. 다시 시도해주세요');}
 }
 function renderCarouselSlide(){
-  const s=carState.slides[carState.currentSlide];
+  const isEmpty = !carState.slides || carState.slides.length===0;
+  const sample = [
+    {slide:1,title:'봄, 머리부터 바뀐다',body:'올봄 가장 많이 찾는 단발 3가지'},
+    {slide:2,title:'1. 레이어드 단발',body:'얼굴형 커버 + 자연스러운 볼륨'},
+    {slide:3,title:'지금 예약하세요',body:'프로필 링크에서 바로 상담받기'}
+  ];
+  const slides = isEmpty ? sample : carState.slides;
+  const s = slides[isEmpty ? 0 : carState.currentSlide];
   if(!s) return;
-  const total=carState.slides.length;
-  const cur=carState.currentSlide;
+  const total=slides.length;
+  const cur=isEmpty ? 0 : carState.currentSlide;
   const bgStyle = carState.bgImg
     ? `background-image:url('${carState.bgImg}');background-size:cover;background-position:center;`
     : `background:${carState.bgColor};`;
   const acct = (carState.shop||'heean_hair');
-  const cap = (carState.slides[0] && carState.slides[0].title) ? carState.slides[0].title : (carState.topic||'');
+  const cap = isEmpty ? '생성하면 여기에 게시물 내용이 표시됩니다' : (slides[0] && slides[0].title ? slides[0].title : (carState.topic||''));
   const dots = Array.from({length:total},(_,i)=>`<div class="ig-dot${i===cur?' on':''}"></div>`).join('');
   const heart=`<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9C.6 9.3 2 5.5 5.5 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3C17 5.5 18.4 9.3 17 12c-2.5 4.4-5 9-5 9z"/></svg>`;
   const cmt=`<svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.6L3 21l1.9-5.8A8.5 8.5 0 1 1 21 11.5z"/></svg>`;
@@ -1107,11 +1080,21 @@ function renderCarouselSlide(){
       <div class="ig-cmt">댓글 8개 모두 보기</div>
       <div class="ig-time">방금 전</div>
     </div>
-    <div class="ig-nav">
+    ${isEmpty?`<div style="text-align:center;font-size:11.5px;color:var(--gray3);margin-top:10px">↑ 생성 전 미리보기 예시입니다</div>`:`<div class="ig-nav">
       <button onclick="prevSlide()" ${cur===0?'disabled':''}>‹</button>
       <span style="font-size:12px;color:var(--gray3)" id="slideCounter">${cur+1} / ${total}</span>
       <button onclick="nextSlide()" ${cur===total-1?'disabled':''}>›</button>
-    </div>`;
+    </div>`}
+    ${carState.caption?`<div style="border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:14px;background:var(--card2)">
+      <div style="font-size:11px;color:var(--gray3);font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+        <span>인스타 캡션 <span style="font-weight:400">— 복사해서 쓰세요</span></span>
+        <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" onclick="copyCarCaption(this)">📋 캡션 복사</button>
+      </div>
+      <div style="font-size:13px;line-height:1.6;color:var(--ink);white-space:pre-wrap">${carState.caption}</div>
+    </div>`:''}`;
+}
+function copyCarCaption(btn){
+  if(carState.caption){navigator.clipboard.writeText(carState.caption).then(()=>{const o=btn.textContent;btn.textContent='✅ 복사됨';setTimeout(()=>btn.textContent=o,1500);});}
 }
 function prevSlide(){if(carState.currentSlide>0){carState.currentSlide--;renderCarouselSlide();}}
 function nextSlide(){if(carState.currentSlide<carState.slides.length-1){carState.currentSlide++;renderCarouselSlide();}}
@@ -1226,6 +1209,12 @@ function pickTmpl(el, uri){
 // ===== 오버레이 편집기 =====
 let ovLayerImg = null;
 
+function ovToggle(){
+  const w=document.getElementById('ovInlineWrap');
+  const open = w.style.display==='none' || !w.style.display;
+  w.style.display = open ? 'block' : 'none';
+  if(open){ ovSwitchTab('txt'); ovRedraw(); w.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+}
 function ovSwitchTab(tab){
   document.getElementById('ovPanelTxt').style.display = tab==='txt' ? '' : 'none';
   document.getElementById('ovPanelImg').style.display = tab==='img' ? '' : 'none';
@@ -1250,11 +1239,11 @@ function ovRedraw(){
   const canvas = document.getElementById('ovCanvas');
   if(!canvas) return;
   const previewEl = document.getElementById('carPreview');
-  const slideDiv = previewEl ? previewEl.querySelector('.carousel-slide') : null;
+  const slideDiv = previewEl ? previewEl.querySelector('.ig-img') : null;
   if(!slideDiv) return;
 
-  const sw = slideDiv.offsetWidth || 195;
-  const sh = slideDiv.offsetHeight || 244;
+  const sw = slideDiv.offsetWidth || 300;
+  const sh = slideDiv.offsetHeight || 375;
   const cw = sw * 2, ch = sh * 2;
   canvas.width = cw; canvas.height = ch;
   const ctx = canvas.getContext('2d');
@@ -1320,7 +1309,7 @@ function ovRedraw(){
     if(!ovEl){
       ovEl = document.createElement('canvas');
       ovEl.className = 'ov-layer';
-      ovEl.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;border-radius:12px;';
+      ovEl.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
       slideDiv.style.position = 'relative';
       slideDiv.appendChild(ovEl);
     }
@@ -1358,6 +1347,7 @@ function ovDownload(){
 }
 
 initTmplGallery();
+renderCarouselSlide();
 apiBanner('apiBannerBlog');
 apiBanner('apiBannerCarousel');
 apiBanner('apiBannerAI');

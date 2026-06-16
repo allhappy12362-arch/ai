@@ -136,6 +136,36 @@ textarea{resize:vertical;min-height:90px;line-height:1.7;}
 .car-slide .st{font-family:'Noto Serif KR',serif;font-size:15px;font-weight:400;line-height:1.45;text-align:center;margin-bottom:8px;}
 .car-slide .sb{font-size:10.5px;line-height:1.7;text-align:center;opacity:.75;}
 
+/* INSTAGRAM FEED PREVIEW */
+.ig-card{width:300px;max-width:100%;background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow2);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+.ig-head{display:flex;align-items:center;gap:8px;padding:9px 11px;}
+.ig-ava{width:30px;height:30px;border-radius:50%;background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);padding:2px;flex-shrink:0;}
+.ig-ava-in{width:100%;height:100%;border-radius:50%;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--ink);overflow:hidden;}
+.ig-ava-in img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.ig-name{font-size:12.5px;font-weight:600;color:#262626;line-height:1.2;}
+.ig-sub{font-size:10.5px;color:#8e8e8e;line-height:1.2;}
+.ig-more{margin-left:auto;color:#262626;font-size:16px;letter-spacing:1px;}
+.ig-img{position:relative;width:100%;aspect-ratio:4/5;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.ig-img .ovl{position:absolute;inset:0;background:rgba(0,0,0,0.28);}
+.ig-slidetxt{position:relative;z-index:1;text-align:center;padding:22px;width:100%;box-sizing:border-box;}
+.ig-st{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:500;line-height:1.4;margin-bottom:9px;word-break:keep-all;}
+.ig-sb{font-size:11.5px;line-height:1.65;opacity:.92;word-break:keep-all;}
+.ig-dots{position:absolute;top:12px;left:0;right:0;display:flex;justify-content:center;gap:4px;z-index:2;}
+.ig-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.55);}
+.ig-dot.on{background:#fff;}
+.ig-pagepill{position:absolute;top:10px;right:11px;z-index:2;background:rgba(0,0,0,.55);color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:11px;}
+.ig-actions{display:flex;align-items:center;gap:14px;padding:9px 12px 4px;}
+.ig-actions svg{width:23px;height:23px;stroke:#262626;fill:none;stroke-width:1.8;cursor:pointer;}
+.ig-actions .save{margin-left:auto;}
+.ig-likes{font-size:12.5px;font-weight:600;color:#262626;padding:1px 12px 3px;}
+.ig-cap{font-size:12.5px;color:#262626;line-height:1.45;padding:0 12px 3px;}
+.ig-cap b{font-weight:600;margin-right:5px;}
+.ig-cmt{font-size:12.5px;color:#8e8e8e;padding:2px 12px;}
+.ig-time{font-size:10px;color:#8e8e8e;text-transform:uppercase;padding:3px 12px 11px;letter-spacing:.2px;}
+.ig-nav{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:12px;}
+.ig-nav button{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--white);cursor:pointer;font-size:15px;color:var(--ink);display:flex;align-items:center;justify-content:center;}
+.ig-nav button:disabled{opacity:.35;cursor:default;}
+
 /* CALENDAR */
 .cal-hdr{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;}
 .cal-lbl{text-align:center;font-size:10px;font-weight:700;color:var(--gray3);padding:3px;text-transform:uppercase;}
@@ -351,7 +381,6 @@ async function tryUnlock(){
             <div class="chips">
               <button class="chip on" onclick="setChip(this,'carCh','인스타그램')">인스타그램</button>
               <button class="chip" onclick="setChip(this,'carCh','당근마켓')">당근마켓</button>
-              <button class="chip" onclick="setChip(this,'carCh','스레드')">스레드</button>
             </div>
           </div>
           <div class="frow2">
@@ -359,6 +388,7 @@ async function tryUnlock(){
             <div><label>톤</label><select id="carTone"><option>트렌디</option><option>고급스러운</option><option>친근한</option><option>전문적</option><option>감성적</option></select></div>
           </div>
           <div class="frow"><label>주제</label><input type="text" id="carTopic" placeholder="예: 봄 단발 추천, 손상모 케어"></div>
+          <div class="frow"><label>계정명 <span style="font-weight:400;font-size:11px;color:var(--gray3)">— 미리보기에 표시</span></label><input type="text" id="carAccount" placeholder="heean_hair"></div>
         </div>
         <div class="card">
           <div class="card-hd">템플릿</div>
@@ -429,12 +459,7 @@ async function tryUnlock(){
             <div style="color:var(--gray3);font-size:13px;text-align:center"><div style="font-size:28px;margin-bottom:8px">🎨</div>설정 후 생성하기를 눌러주세요</div>
           </div>
           <div id="carResultActions" style="display:none;margin-top:12px">
-            <div style="display:flex;gap:8px;align-items:center">
-              <button class="btn btn-outline btn-sm" style="flex:1" onclick="prevSlide()">← 이전</button>
-              <span style="font-size:12px;color:var(--gray3)" id="slideCounter">1 / 5</span>
-              <button class="btn btn-outline btn-sm" style="flex:1" onclick="nextSlide()">다음 →</button>
-            </div>
-            <button class="btn btn-black" style="width:100%;margin-top:8px" onclick="ovDownload()">💾 이미지로 저장</button>
+            <button class="btn btn-black" style="width:100%" onclick="ovDownload()">💾 이미지로 저장</button>
           </div>
 
           <!-- 오버레이 편집 (인라인) -->
@@ -1017,6 +1042,8 @@ async function generateCarousel(){
   const slides=parseInt(document.getElementById('carSlides').value);
   const tone=document.getElementById('carTone').value;
   const ch=chipState.carCh;
+  carState.topic=topic; carState.ch=ch;
+  carState.shop=(document.getElementById('carAccount').value.trim()||'heean_hair').replace(/^@/,'');
   document.getElementById('carPreview').innerHTML='<div class="loading"><div class="spinner"></div> 피드 생성 중...</div>';
   const prompt=`너는 HEEAN HAIR(헤어 살롱) 인스타 카드뉴스 카피라이터다. 주제:"${topic}", 분야:${ch}, 스타일:${carState.style}, 톤:${tone}, 슬라이드 ${slides}장.
 
@@ -1044,19 +1071,47 @@ async function generateCarousel(){
 function renderCarouselSlide(){
   const s=carState.slides[carState.currentSlide];
   if(!s) return;
+  const total=carState.slides.length;
+  const cur=carState.currentSlide;
   const bgStyle = carState.bgImg
     ? `background-image:url('${carState.bgImg}');background-size:cover;background-position:center;`
     : `background:${carState.bgColor};`;
+  const acct = (carState.shop||'heean_hair');
+  const cap = (carState.slides[0] && carState.slides[0].title) ? carState.slides[0].title : (carState.topic||'');
+  const dots = Array.from({length:total},(_,i)=>`<div class="ig-dot${i===cur?' on':''}"></div>`).join('');
+  const heart=`<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9C.6 9.3 2 5.5 5.5 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3C17 5.5 18.4 9.3 17 12c-2.5 4.4-5 9-5 9z"/></svg>`;
+  const cmt=`<svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.6L3 21l1.9-5.8A8.5 8.5 0 1 1 21 11.5z"/></svg>`;
+  const share=`<svg viewBox="0 0 24 24"><path d="M22 3 11 14"/><path d="M22 3 15 21l-4-7-7-4 18-7z"/></svg>`;
+  const save=`<svg class="save" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
   document.getElementById('carPreview').innerHTML=`
-    <div class="carousel-slide" style="${bgStyle}color:${carState.txtColor}">
-      ${carState.bgImg?'<div style="position:absolute;inset:0;background:rgba(0,0,0,0.25);border-radius:12px;"></div>':''}
-      <div style="position:relative;z-index:1;text-align:center;padding:8px">
-        <div class="slide-num">${s.slide}/${carState.slides.length}</div>
-        <div class="slide-title">${s.title}</div>
-        <div class="slide-body">${s.body}</div>
+    <div class="ig-card">
+      <div class="ig-head">
+        <div class="ig-ava"><div class="ig-ava-in">${carState.bgImg?`<img src="${carState.bgImg}">`:acct.charAt(0).toUpperCase()}</div></div>
+        <div>
+          <div class="ig-name">${acct}</div>
+          <div class="ig-sub">${carState.ch||'인스타그램'} · 후원</div>
+        </div>
+        <div class="ig-more">⋯</div>
       </div>
+      <div class="ig-img" style="${bgStyle}color:${carState.txtColor}">
+        ${carState.bgImg?'<div class="ovl"></div>':''}
+        ${total>1?`<div class="ig-dots">${dots}</div><div class="ig-pagepill">${cur+1}/${total}</div>`:''}
+        <div class="ig-slidetxt">
+          <div class="ig-st">${s.title}</div>
+          <div class="ig-sb">${s.body}</div>
+        </div>
+      </div>
+      <div class="ig-actions">${heart}${cmt}${share}${save}</div>
+      <div class="ig-likes">좋아요 127개</div>
+      <div class="ig-cap"><b>${acct}</b>${cap}</div>
+      <div class="ig-cmt">댓글 8개 모두 보기</div>
+      <div class="ig-time">방금 전</div>
+    </div>
+    <div class="ig-nav">
+      <button onclick="prevSlide()" ${cur===0?'disabled':''}>‹</button>
+      <span style="font-size:12px;color:var(--gray3)" id="slideCounter">${cur+1} / ${total}</span>
+      <button onclick="nextSlide()" ${cur===total-1?'disabled':''}>›</button>
     </div>`;
-  document.getElementById('slideCounter').textContent=`${carState.currentSlide+1} / ${carState.slides.length}`;
 }
 function prevSlide(){if(carState.currentSlide>0){carState.currentSlide--;renderCarouselSlide();}}
 function nextSlide(){if(carState.currentSlide<carState.slides.length-1){carState.currentSlide++;renderCarouselSlide();}}

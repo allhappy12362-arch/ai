@@ -119,8 +119,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.7;}
 /* STYLE CARDS */
 
 /* COLOR SWATCH */
-.color-swatch{width:28px;height:28px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:.15s;}
-.color-swatch.on{border-color:var(--black);transform:scale(1.15);}
 
 /* CAROUSEL PREVIEW */
 .car-preview{background:var(--gray6);border:1px solid var(--border);border-radius:12px;padding:20px;min-height:280px;display:flex;align-items:center;justify-content:center;}
@@ -380,40 +378,24 @@ async function tryUnlock(){
             <div><label>슬라이드 수</label><select id="carSlides"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>8</option><option>10</option></select></div>
             <div><label>톤</label><select id="carTone"><option>트렌디</option><option>고급스러운</option><option>친근한</option><option>전문적</option><option>감성적</option></select></div>
           </div>
-          <div class="frow"><label>주제</label><input type="text" id="carTopic" placeholder="예: 봄 단발 추천, 손상모 케어"></div>
+          <div class="frow"><label>주제</label>
+            <select id="carTopicPreset" onchange="if(this.value){document.getElementById('carTopic').value=this.value;}" style="margin-bottom:6px">
+              <option value="">— 자주 쓰는 주제 고르기 —</option>
+              <option value="봄 단발 추천">봄 단발 추천</option>
+              <option value="손상모 케어 방법">손상모 케어 방법</option>
+              <option value="펌 종류 비교">펌 종류 비교</option>
+              <option value="염색 후 색 오래 유지하는 법">염색 후 색 오래 유지하는 법</option>
+              <option value="얼굴형별 어울리는 헤어스타일">얼굴형별 어울리는 헤어스타일</option>
+            </select>
+            <input type="text" id="carTopic" placeholder="직접 입력하거나 위에서 골라주세요">
+          </div>
           <div class="frow"><label>계정명 <span style="font-weight:400;font-size:11px;color:var(--gray3)">— 미리보기에 표시</span></label><input type="text" id="carAccount" placeholder="heean_hair"></div>
         </div>
         <div class="card">
           <div class="card-hd">배경 이미지 템플릿</div>
-          <div class="card-note">피드 배경으로 쓸 이미지를 골라보세요 (없음 = 단색 배경)</div>
+          <div class="card-note">피드 배경으로 쓸 이미지를 골라보세요. 고르면 오른쪽 미리보기에 바로 적용됩니다 (없음 = 단색 배경)</div>
           <div id="tmplGallery" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div>
-        </div>
-        <div class="card">
-          <div class="card-hd">색상</div>
-          <div class="frow">
-            <label>배경</label>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="bgColors">
-              <div class="color-swatch on" style="background:#1a1a1a" onclick="pickColor(this,'bg','#1a1a1a')"></div>
-              <div class="color-swatch" style="background:#ffffff;border:1px solid #ddd" onclick="pickColor(this,'bg','#ffffff')"></div>
-              <div class="color-swatch" style="background:#f7f5f0" onclick="pickColor(this,'bg','#f7f5f0')"></div>
-              <div class="color-swatch" style="background:#0f0f1a" onclick="pickColor(this,'bg','#0f0f1a')"></div>
-              <div class="color-swatch" style="background:#fdf6ec" onclick="pickColor(this,'bg','#fdf6ec')"></div>
-              <div class="color-swatch" style="background:#e8f4e8" onclick="pickColor(this,'bg','#e8f4e8')"></div>
-              <div class="color-swatch" style="background:#fff0f5" onclick="pickColor(this,'bg','#fff0f5')"></div>
-              <div class="color-swatch" style="background:#2e2e2e" onclick="pickColor(this,'bg','#2e2e2e')"></div>
-            </div>
-          </div>
-          <div class="frow">
-            <label>글씨</label>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="txtColors">
-              <div class="color-swatch on" style="background:#ffffff" onclick="pickColor(this,'txt','#ffffff')"></div>
-              <div class="color-swatch" style="background:#1a1a1a" onclick="pickColor(this,'txt','#1a1a1a')"></div>
-              <div class="color-swatch" style="background:#c4a96a" onclick="pickColor(this,'txt','#c4a96a')"></div>
-              <div class="color-swatch" style="background:#8a9e6e" onclick="pickColor(this,'txt','#8a9e6e')"></div>
-              <div class="color-swatch" style="background:#a07ee0" onclick="pickColor(this,'txt','#a07ee0')"></div>
-            </div>
-          </div>
-          <button class="btn btn-black" style="width:100%;margin-top:4px" onclick="generateCarousel()">피드 생성하기</button>
+          <button class="btn btn-black" style="width:100%;margin-top:14px" onclick="generateCarousel()">피드 생성하기</button>
         </div>
       </div>
       <div>
@@ -993,11 +975,6 @@ JSON만: [{"label":"비포","prompt":"english prompt"},{"label":"시술과정","
 }
 
 // CAROUSEL
-function pickColor(el,type,color){
-  el.closest('div').querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('on'));
-  el.classList.add('on');
-  if(type==='bg') carState.bgColor=color; else carState.txtColor=color;
-}
 async function generateCarousel(){
   const topic=document.getElementById('carTopic').value.trim();
   if(!topic){toast('주제를 입력해주세요');return;}
@@ -1203,7 +1180,7 @@ function pickTmpl(el, uri){
   el.style.borderColor='var(--black)';
   el.style.outline='2px solid var(--black)';
   carState.bgImg = uri;
-  if(carState.slides.length) renderCarouselSlide();
+  renderCarouselSlide();
 }
 
 // ===== 오버레이 편집기 =====

@@ -869,11 +869,6 @@ function renderSamples(){
       </div>`).join('');
     }
   }
-  if(ref){
-    const cur=ref.value;
-    ref.innerHTML='<option value="">샘플 없이 기본 톤으로</option>'+arr.map(s=>`<option value="${s.id}">[${s.len}] ${s.title}</option>`).join('');
-    ref.value=cur;
-  }
   refreshPersonaOptions();
 }
 function copyResultText(btn){

@@ -138,6 +138,9 @@ textarea{resize:vertical;min-height:90px;line-height:1.7;}
 .ig-more{margin-left:auto;color:#262626;font-size:16px;letter-spacing:1px;}
 .ig-img{position:relative;width:100%;aspect-ratio:4/5;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;}
 .ig-img .ovl{position:absolute;inset:0;background:rgba(0,0,0,0.28);}
+.ov-img-wrap{box-shadow:0 0 0 1.5px rgba(255,255,255,.9),0 0 0 3px rgba(0,0,0,.25);}
+.ov-handle{position:absolute;width:16px;height:16px;background:#fff;border:2px solid var(--black);border-radius:50%;z-index:6;touch-action:none;}
+.ov-handle-br{right:-9px;bottom:-9px;cursor:nwse-resize;}
 .ig-actions{display:flex;align-items:center;gap:14px;padding:9px 12px 4px;}
 .ig-actions svg{width:23px;height:23px;stroke:#262626;fill:none;stroke-width:1.8;cursor:pointer;}
 .ig-actions .save{margin-left:auto;}
@@ -367,12 +370,13 @@ async function tryUnlock(){
           <div class="frow"><label>톤</label><select id="carTone"><option>트렌디</option><option>고급스러운</option><option>친근한</option><option>전문적</option><option>감성적</option></select></div>
           <div class="frow"><label>주제 <span style="font-weight:400;font-size:11px;color:var(--gray3)">— 인스타 캡션 생성에 사용</span></label>
             <select id="carTopicPreset" onchange="if(this.value){document.getElementById('carTopic').value=this.value;}" style="margin-bottom:6px">
-              <option value="">— 자주 쓰는 주제 고르기 —</option>
-              <option value="봄 단발 추천">봄 단발 추천</option>
-              <option value="손상모 케어 방법">손상모 케어 방법</option>
-              <option value="펌 종류 비교">펌 종류 비교</option>
-              <option value="염색 후 색 오래 유지하는 법">염색 후 색 오래 유지하는 법</option>
-              <option value="얼굴형별 어울리는 헤어스타일">얼굴형별 어울리는 헤어스타일</option>
+              <option value="">— 컨텐츠 카테고리 고르기 —</option>
+              <option value="고객 리뷰 컨텐츠">고객 리뷰 컨텐츠</option>
+              <option value="개인 활동 컨텐츠">개인 활동 컨텐츠</option>
+              <option value="여자 머리 컨텐츠">여자 머리 컨텐츠</option>
+              <option value="여자 셀프 스타일링 컨텐츠">여자 셀프 스타일링 컨텐츠</option>
+              <option value="헤어스타일 정보 소개">헤어스타일 정보 소개</option>
+              <option value="남자 셀프 스타일링 컨텐츠">남자 셀프 스타일링 컨텐츠</option>
             </select>
             <input type="text" id="carTopic" placeholder="직접 입력하거나 위에서 골라주세요">
           </div>
@@ -401,35 +405,22 @@ async function tryUnlock(){
 
             <!-- 사진 얹기 패널 -->
             <div id="ovPanelImg">
-              <div class="card-note" style="margin-bottom:10px">사진보관함에서 이미지를 골라 배경 템플릿 위에 얹습니다.</div>
+              <div class="card-note" style="margin-bottom:10px">사진을 올린 뒤 <b>미리보기 위에서 직접 드래그</b>해 옮기고, <b>모서리 핸들</b>을 끌어 크기를 조절하세요.</div>
               <div class="frow">
                 <label>얹을 사진 업로드</label>
                 <input type="file" id="ovImgInput" accept="image/*" onchange="ovLoadOverlayImg(this)" style="background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:10px;width:100%;font-family:inherit;font-size:13px;">
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
                 <div>
-                  <label>크기 <span id="ovImgSizeVal" style="font-weight:400;color:var(--gray3)">50%</span></label>
-                  <input type="range" id="ovImgSize" min="10" max="100" value="50" oninput="ovRedraw();document.getElementById('ovImgSizeVal').textContent=this.value+'%'" style="width:100%;accent-color:var(--black)">
-                </div>
-                <div>
                   <label>투명도 <span id="ovImgOpacVal" style="font-weight:400;color:var(--gray3)">100%</span></label>
-                  <input type="range" id="ovImgOpac" min="10" max="100" value="100" oninput="ovRedraw();document.getElementById('ovImgOpacVal').textContent=this.value+'%'" style="width:100%;accent-color:var(--black)">
-                </div>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <div>
-                  <label>가로 위치</label>
-                  <input type="range" id="ovImgX" min="0" max="100" value="50" oninput="ovRedraw()" style="width:100%;accent-color:var(--black)">
+                  <input type="range" id="ovImgOpac" min="10" max="100" value="100" oninput="ovState.opacity=this.value/100;ovRedraw();document.getElementById('ovImgOpacVal').textContent=this.value+'%'" style="width:100%;accent-color:var(--black)">
                 </div>
                 <div>
-                  <label>세로 위치</label>
-                  <input type="range" id="ovImgY" min="0" max="100" value="50" oninput="ovRedraw()" style="width:100%;accent-color:var(--black)">
+                  <label>모서리 둥글기 <span id="ovImgRadVal" style="font-weight:400;color:var(--gray3)">0</span></label>
+                  <input type="range" id="ovImgRadius" min="0" max="50" value="0" oninput="ovState.radius=parseInt(this.value);ovRedraw();document.getElementById('ovImgRadVal').textContent=this.value" style="width:100%;accent-color:var(--black)">
                 </div>
               </div>
-              <div style="margin-top:10px">
-                <label>모서리 둥글기</label>
-                <input type="range" id="ovImgRadius" min="0" max="50" value="0" oninput="ovRedraw()" style="width:100%;accent-color:var(--black)">
-              </div>
+              <button class="btn btn-outline btn-sm" style="width:100%" onclick="ovRemoveImg()">🗑️ 얹은 사진 제거</button>
             </div>
 
             <canvas id="ovCanvas" style="display:none"></canvas>
@@ -1089,7 +1080,10 @@ function pickTmpl(el, uri){
 }
 
 // ===== 오버레이 편집기 =====
+// ===== 오버레이 사진 (드래그/리사이즈) =====
 let ovLayerImg = null;
+let ovState = { src:null, x:0.5, y:0.5, w:0.5, opacity:1, radius:0 }; // x,y,w 는 컨테이너 대비 비율
+let _ovDrag = null;
 
 function ovToggle(){
   const w=document.getElementById('ovInlineWrap');
@@ -1097,103 +1091,154 @@ function ovToggle(){
   w.style.display = open ? 'block' : 'none';
   if(open){ ovRedraw(); w.scrollIntoView({behavior:'smooth',block:'nearest'}); }
 }
+
 function ovLoadOverlayImg(input){
   const file = input.files[0];
   if(!file) return;
   const reader = new FileReader();
   reader.onload = e => {
     const img = new Image();
-    img.onload = () => { ovLayerImg = img; ovRedraw(); };
+    img.onload = () => {
+      ovLayerImg = img;
+      ovState.src = e.target.result;
+      ovState.x=0.5; ovState.y=0.5; ovState.w=0.5;
+      ovRedraw();
+    };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
+function ovRemoveImg(){
+  ovLayerImg=null; ovState.src=null;
+  const ex=document.querySelector('#carPreview .ov-img-wrap'); if(ex) ex.remove();
+  const inp=document.getElementById('ovImgInput'); if(inp) inp.value='';
+}
+
+// 미리보기 위에 실제 DOM 이미지를 띄우고 드래그/리사이즈 핸들 부착
 function ovRedraw(){
-  const canvas = document.getElementById('ovCanvas');
-  if(!canvas) return;
-  const previewEl = document.getElementById('carPreview');
-  const slideDiv = previewEl ? previewEl.querySelector('.ig-img') : null;
-  if(!slideDiv) return;
+  const slideDiv = document.querySelector('#carPreview .ig-img');
+  if(!slideDiv){ return; }
+  slideDiv.style.position='relative';
+  let wrap = slideDiv.querySelector('.ov-img-wrap');
 
-  const sw = slideDiv.offsetWidth || 300;
-  const sh = slideDiv.offsetHeight || 375;
-  const cw = sw * 2, ch = sh * 2;
-  canvas.width = cw; canvas.height = ch;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, cw, ch);
+  if(!ovLayerImg){ if(wrap) wrap.remove(); return; }
 
-  const drawAll = () => {
-    // 사진 오버레이
-    if(ovLayerImg){
-      const sizePct = parseInt(document.getElementById('ovImgSize').value)/100;
-      const opac = parseInt(document.getElementById('ovImgOpac').value)/100;
-      const xPct = parseInt(document.getElementById('ovImgX').value)/100;
-      const yPct = parseInt(document.getElementById('ovImgY').value)/100;
-      const radiusPct = parseInt(document.getElementById('ovImgRadius').value);
-      const iw = cw * sizePct;
-      const ih = iw * (ovLayerImg.height/ovLayerImg.width);
-      const ix = cw*xPct - iw/2;
-      const iy = ch*yPct - ih/2;
-      ctx.save();
-      ctx.globalAlpha = opac;
-      if(radiusPct > 0){
-        const r = iw * radiusPct/100;
-        ctx.beginPath();
-        ctx.moveTo(ix+r, iy); ctx.lineTo(ix+iw-r, iy);
-        ctx.quadraticCurveTo(ix+iw, iy, ix+iw, iy+r);
-        ctx.lineTo(ix+iw, iy+ih-r);
-        ctx.quadraticCurveTo(ix+iw, iy+ih, ix+iw-r, iy+ih);
-        ctx.lineTo(ix+r, iy+ih);
-        ctx.quadraticCurveTo(ix, iy+ih, ix, iy+ih-r);
-        ctx.lineTo(ix, iy+r);
-        ctx.quadraticCurveTo(ix, iy, ix+r, iy);
-        ctx.closePath(); ctx.clip();
-      }
-      ctx.drawImage(ovLayerImg, ix, iy, iw, ih);
-      ctx.restore();
+  const cw = slideDiv.offsetWidth, ch = slideDiv.offsetHeight;
+  const iw = cw * ovState.w;
+  const ih = iw * (ovLayerImg.height/ovLayerImg.width);
+  const left = cw*ovState.x - iw/2;
+  const top  = ch*ovState.y - ih/2;
+
+  if(!wrap){
+    wrap = document.createElement('div');
+    wrap.className='ov-img-wrap';
+    wrap.innerHTML = `<img class="ov-img" draggable="false"><div class="ov-handle ov-handle-br"></div>`;
+    slideDiv.appendChild(wrap);
+    _ovBindDrag(wrap, slideDiv);
+  }
+  wrap.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${iw}px;height:${ih}px;cursor:move;touch-action:none;z-index:5;`;
+  const im = wrap.querySelector('img');
+  im.src = ovState.src;
+  im.style.cssText = `width:100%;height:100%;object-fit:cover;display:block;opacity:${ovState.opacity};border-radius:${iw*ovState.radius/100}px;pointer-events:none;`;
+}
+
+function _ovBindDrag(wrap, slideDiv){
+  const handle = wrap.querySelector('.ov-handle-br');
+  const getPt = ev => ev.touches ? ev.touches[0] : ev;
+
+  // 이동
+  wrap.addEventListener('mousedown', startMove);
+  wrap.addEventListener('touchstart', startMove, {passive:false});
+  function startMove(ev){
+    if(ev.target.classList.contains('ov-handle')) return;
+    ev.preventDefault();
+    const p=getPt(ev);
+    _ovDrag={mode:'move', sx:p.clientX, sy:p.clientY, ox:ovState.x, oy:ovState.y};
+    _ovAttach();
+  }
+  // 크기 (우하단 핸들)
+  handle.addEventListener('mousedown', startResize);
+  handle.addEventListener('touchstart', startResize, {passive:false});
+  function startResize(ev){
+    ev.preventDefault(); ev.stopPropagation();
+    const p=getPt(ev);
+    _ovDrag={mode:'resize', sx:p.clientX, ow:ovState.w};
+    _ovAttach();
+  }
+  function _ovAttach(){
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, {passive:false});
+    document.addEventListener('touchend', onUp);
+  }
+  function onMove(ev){
+    if(!_ovDrag) return;
+    ev.preventDefault();
+    const p=getPt(ev);
+    const cw=slideDiv.offsetWidth, ch=slideDiv.offsetHeight;
+    if(_ovDrag.mode==='move'){
+      ovState.x = Math.max(0, Math.min(1, _ovDrag.ox + (p.clientX-_ovDrag.sx)/cw));
+      ovState.y = Math.max(0, Math.min(1, _ovDrag.oy + (p.clientY-_ovDrag.sy)/ch));
+    } else {
+      ovState.w = Math.max(0.1, Math.min(1.5, _ovDrag.ow + (p.clientX-_ovDrag.sx)/cw));
     }
-
-    // 슬라이드 위에 오버레이 캔버스 반영
-    let ovEl = slideDiv.querySelector('canvas.ov-layer');
-    if(!ovEl){
-      ovEl = document.createElement('canvas');
-      ovEl.className = 'ov-layer';
-      ovEl.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
-      slideDiv.style.position = 'relative';
-      slideDiv.appendChild(ovEl);
-    }
-    ovEl.width = cw; ovEl.height = ch;
-    ovEl.getContext('2d').drawImage(canvas, 0, 0);
-  };
-
-  if(carState.bgImg){
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, cw, ch);
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.fillRect(0,0,cw,ch);
-      drawAll();
-    };
-    img.src = carState.bgImg;
-  } else {
-    ctx.fillStyle = carState.bgColor || '#1a1a1a';
-    ctx.fillRect(0,0,cw,ch);
-    drawAll();
+    ovRedraw();
+  }
+  function onUp(){
+    _ovDrag=null;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
   }
 }
 
+// 저장: 배경(템플릿/단색) + 오버레이 사진을 4:5 캔버스로 합성
 function ovDownload(){
-  const canvas = document.getElementById('ovCanvas');
-  if(!canvas || canvas.width===0){ toast('먼저 피드를 생성해주세요'); return; }
-  ovRedraw();
-  setTimeout(() => {
-    const a = document.createElement('a');
-    a.download = 'heean_feed_' + Date.now() + '.jpg';
-    a.href = canvas.toDataURL('image/jpeg', 0.93);
+  const slideDiv = document.querySelector('#carPreview .ig-img');
+  if(!slideDiv){ toast('먼저 캡션을 생성해주세요'); return; }
+  const cw=1080, ch=1350; // 인스타 4:5
+  const canvas=document.getElementById('ovCanvas');
+  canvas.width=cw; canvas.height=ch;
+  const ctx=canvas.getContext('2d');
+
+  const paintOverlay = () => {
+    if(ovLayerImg){
+      const iw=cw*ovState.w;
+      const ih=iw*(ovLayerImg.height/ovLayerImg.width);
+      const ix=cw*ovState.x - iw/2;
+      const iy=ch*ovState.y - ih/2;
+      ctx.save();
+      ctx.globalAlpha=ovState.opacity;
+      if(ovState.radius>0){
+        const r=iw*ovState.radius/100;
+        ctx.beginPath();
+        ctx.moveTo(ix+r,iy); ctx.lineTo(ix+iw-r,iy);
+        ctx.quadraticCurveTo(ix+iw,iy,ix+iw,iy+r); ctx.lineTo(ix+iw,iy+ih-r);
+        ctx.quadraticCurveTo(ix+iw,iy+ih,ix+iw-r,iy+ih); ctx.lineTo(ix+r,iy+ih);
+        ctx.quadraticCurveTo(ix,iy+ih,ix,iy+ih-r); ctx.lineTo(ix,iy+r);
+        ctx.quadraticCurveTo(ix,iy,ix+r,iy); ctx.closePath(); ctx.clip();
+      }
+      ctx.drawImage(ovLayerImg,ix,iy,iw,ih);
+      ctx.restore();
+    }
+    const a=document.createElement('a');
+    a.download='heean_feed_'+Date.now()+'.jpg';
+    a.href=canvas.toDataURL('image/jpeg',0.93);
     a.click();
     toast('이미지 저장됐어요 ✅');
-  }, 400);
+  };
+
+  if(carState.bgImg){
+    const bg=new Image();
+    bg.onload=()=>{ ctx.drawImage(bg,0,0,cw,ch); paintOverlay(); };
+    bg.src=carState.bgImg;
+  } else {
+    ctx.fillStyle=carState.bgColor||'#1a1a1a';
+    ctx.fillRect(0,0,cw,ch);
+    paintOverlay();
+  }
 }
 
 initTmplGallery();

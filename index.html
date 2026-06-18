@@ -138,9 +138,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.7;}
 .ig-more{margin-left:auto;color:#262626;font-size:16px;letter-spacing:1px;}
 .ig-img{position:relative;width:100%;aspect-ratio:4/5;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;}
 .ig-img .ovl{position:absolute;inset:0;background:rgba(0,0,0,0.28);}
-.ov-img-wrap{box-shadow:0 0 0 1.5px rgba(255,255,255,.9),0 0 0 3px rgba(0,0,0,.25);}
-.ov-handle{position:absolute;width:16px;height:16px;background:#fff;border:2px solid var(--black);border-radius:50%;z-index:6;touch-action:none;}
-.ov-handle-br{right:-9px;bottom:-9px;cursor:nwse-resize;}
 .ig-actions{display:flex;align-items:center;gap:14px;padding:9px 12px 4px;}
 .ig-actions svg{width:23px;height:23px;stroke:#262626;fill:none;stroke-width:1.8;cursor:pointer;}
 .ig-actions .save{margin-left:auto;}
@@ -154,7 +151,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.7;}
 .cal-hdr{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;}
 .cal-lbl{text-align:center;font-size:10px;font-weight:700;color:var(--gray3);padding:3px;text-transform:uppercase;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
-.cal-day{aspect-ratio:1;border-radius:8px;background:var(--gray6);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;position:relative;}
+.cal-day{aspect-ratio:1;border-radius:8px;background:var(--gray6);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;position:relative;}
 .cal-day:hover{background:var(--gray5);border-color:var(--border2);}
 .cal-day.has-post::after{content:'';width:4px;height:4px;border-radius:50%;background:var(--black);position:absolute;bottom:4px;}
 .cal-day.today{background:var(--black);color:#fff;border-color:var(--black);}
@@ -248,7 +245,6 @@ async function tryUnlock(){
     <div class="nav-group-label">콘텐츠 제작</div>
     <button class="tab active nav-item" onclick="nav('blog')"><span class="t-icon">📝</span><span>블로그 글 생성</span></button>
     <button class="tab nav-item" onclick="nav('carousel')"><span class="t-icon">🎨</span><span>피드 만들기</span></button>
-    <button class="tab nav-item" onclick="nav('aiimage')"><span class="t-icon">✨</span><span>AI 사진 생성</span><span class="tab-badge">NEW</span></button>
     <div class="nav-group-label">자동화</div>
     <button class="tab nav-item" onclick="nav('schedule')"><span class="t-icon">📅</span><span>자동 업로드</span></button>
     <div class="nav-group-label">희안헤어</div>
@@ -369,7 +365,7 @@ async function tryUnlock(){
           </div>
           <div class="frow"><label>톤</label><select id="carTone"><option>트렌디</option><option>고급스러운</option><option>친근한</option><option>전문적</option><option>감성적</option></select></div>
           <div class="frow"><label>주제 <span style="font-weight:400;font-size:11px;color:var(--gray3)">— 인스타 캡션 생성에 사용</span></label>
-            <select id="carTopicPreset" onchange="if(this.value){document.getElementById('carTopic').value=this.value;}" style="margin-bottom:6px">
+            <select id="carTopicPreset">
               <option value="">— 컨텐츠 카테고리 고르기 —</option>
               <option value="고객 리뷰 컨텐츠">고객 리뷰 컨텐츠</option>
               <option value="개인 활동 컨텐츠">개인 활동 컨텐츠</option>
@@ -378,9 +374,7 @@ async function tryUnlock(){
               <option value="헤어스타일 정보 소개">헤어스타일 정보 소개</option>
               <option value="남자 셀프 스타일링 컨텐츠">남자 셀프 스타일링 컨텐츠</option>
             </select>
-            <input type="text" id="carTopic" placeholder="직접 입력하거나 위에서 골라주세요">
           </div>
-          <div class="frow"><label>계정명 <span style="font-weight:400;font-size:11px;color:var(--gray3)">— 미리보기에 표시</span></label><input type="text" id="carAccount" placeholder="heean_hair"></div>
         </div>
         <div class="card">
           <div class="card-hd">배경 이미지 템플릿</div>
@@ -402,6 +396,7 @@ async function tryUnlock(){
           <div id="carResultActions" style="display:none;margin-top:12px">
             <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="generateCarousel()">🔄 다른 버전으로 재생성</button>
             <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="ovToggle()">🖼️ 내 사진 얹기</button>
+            <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="scheduleFromContent('', carState.caption, '인스타그램')">📅 예약에 추가</button>
             <button class="btn btn-black" style="width:100%" onclick="ovDownload()">💾 이미지로 저장</button>
           </div>
 
@@ -410,22 +405,23 @@ async function tryUnlock(){
 
             <!-- 사진 얹기 패널 -->
             <div id="ovPanelImg">
-              <div class="card-note" style="margin-bottom:10px">사진을 올린 뒤 <b>미리보기 위에서 직접 드래그</b>해 옮기고, <b>모서리 핸들</b>을 끌어 크기를 조절하세요.</div>
+              <div class="card-note" style="margin-bottom:10px">사진을 여러 장(최대 10장) 올리면 자동으로 격자 배치돼요. 간격·둥글기는 아래에서 조절하세요.</div>
               <div class="frow">
-                <label>얹을 사진 업로드</label>
-                <input type="file" id="ovImgInput" accept="image/*" onchange="ovLoadOverlayImg(this)" style="background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:10px;width:100%;font-family:inherit;font-size:13px;">
+                <label>얹을 사진 업로드 (여러 장 선택 가능)</label>
+                <input type="file" id="ovImgInput" accept="image/*" multiple onchange="ovLoadOverlayImg(this)" style="background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:10px;width:100%;font-family:inherit;font-size:13px;">
               </div>
+              <div id="ovThumbs" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
                 <div>
-                  <label>투명도 <span id="ovImgOpacVal" style="font-weight:400;color:var(--gray3)">100%</span></label>
-                  <input type="range" id="ovImgOpac" min="10" max="100" value="100" oninput="ovState.opacity=this.value/100;ovRedraw();document.getElementById('ovImgOpacVal').textContent=this.value+'%'" style="width:100%;accent-color:var(--black)">
+                  <label>사진 간격 <span id="ovGapVal" style="font-weight:400;color:var(--gray3)">6</span></label>
+                  <input type="range" id="ovGap" min="0" max="30" value="6" oninput="ovState.gap=parseInt(this.value);ovRedraw();document.getElementById('ovGapVal').textContent=this.value" style="width:100%;accent-color:var(--black)">
                 </div>
                 <div>
                   <label>모서리 둥글기 <span id="ovImgRadVal" style="font-weight:400;color:var(--gray3)">0</span></label>
-                  <input type="range" id="ovImgRadius" min="0" max="50" value="0" oninput="ovState.radius=parseInt(this.value);ovRedraw();document.getElementById('ovImgRadVal').textContent=this.value" style="width:100%;accent-color:var(--black)">
+                  <input type="range" id="ovImgRadius" min="0" max="40" value="0" oninput="ovState.radius=parseInt(this.value);ovRedraw();document.getElementById('ovImgRadVal').textContent=this.value" style="width:100%;accent-color:var(--black)">
                 </div>
               </div>
-              <button class="btn btn-outline btn-sm" style="width:100%" onclick="ovRemoveImg()">🗑️ 얹은 사진 제거</button>
+              <button class="btn btn-outline btn-sm" style="width:100%" onclick="ovRemoveImg()">🗑️ 사진 전체 제거</button>
             </div>
 
             <canvas id="ovCanvas" style="display:none"></canvas>
@@ -436,52 +432,59 @@ async function tryUnlock(){
   </div>
 
   <!-- AI IMAGE -->
-  <div class="page" id="page-aiimage">
-    <div id="apiBannerAI"></div>
-    <div class="card">
-      <div class="card-hd">AI 헤어 모델 이미지 생성</div>
-      <div class="card-note">원하는 헤어스타일을 설정하면 Midjourney / Leonardo.ai용 프롬프트를 생성해드립니다</div>
-      <div class="frow3">
-        <div><label>헤어 종류</label><select id="aiHairType"><option>단발</option><option>중단발</option><option>장발</option><option>숏컷</option><option>웨이브</option></select></div>
-        <div><label>헤어 컬러</label><select id="aiHairColor"><option>블랙</option><option>브라운</option><option>애쉬</option><option>베이지</option><option>블론드</option><option>레드브라운</option></select></div>
-        <div><label>분위기</label><select id="aiMood"><option>내추럴</option><option>스튜디오</option><option>카페</option><option>야외</option><option>럭셔리</option></select></div>
-      </div>
-      <div class="frow"><label>추가 프롬프트</label><textarea id="aiExtraPrompt" placeholder="예: 이마 드러내기, 흰 블라우스, 카메라 45도 각도" style="min-height:70px"></textarea></div>
-      <div class="frow"><label>생성 수</label><select id="aiImgCount" style="width:110px"><option>1</option><option selected>3</option><option>6</option></select></div>
-      <button class="btn btn-black" onclick="generateAIImage()">프롬프트 생성하기</button>
-    </div>
-    <div class="card" id="aiImageResultCard" style="margin-top:16px;display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div class="card-hd" style="margin-bottom:0">생성된 프롬프트</div>
-        <button class="btn btn-outline btn-sm" onclick="generateAIImage()">재생성</button>
-      </div>
-      <div id="aiImgResults" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px"></div>
-      <div class="warn-box" style="margin-top:14px">💡 위 프롬프트를 복사해서 <b>Midjourney, Leonardo.ai, Adobe Firefly</b>에 붙여넣어 이미지를 생성하세요</div>
-    </div>
-  </div>
-
-  <!-- SCHEDULE -->
   <div class="page" id="page-schedule">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
-      <button class="btn btn-black" onclick="toast('예약 게시물 작성 기능은 준비 중이에요')">+ 새 예약</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:12.5px;color:var(--gray3)">예약을 저장하면 이 기기에 보관되고, 올릴 차례가 되면 여기 상단에 떠요.</div>
+      <button class="btn btn-black" onclick="openScheduleModal(null)">+ 새 예약</button>
+    </div>
+    <div class="card" style="margin-bottom:16px;border-left:3px solid var(--black)">
+      <div class="card-hd">📌 지금 올릴 차례</div>
+      <div id="dueBoard"></div>
     </div>
     <div class="col2">
       <div>
         <div class="card">
-          <div class="card-hd">5월 발행 캘린더</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <button class="btn btn-outline btn-sm" onclick="calPrev()">‹</button>
+            <div class="card-hd" id="calTitle" style="margin:0"></div>
+            <button class="btn btn-outline btn-sm" onclick="calNext()">›</button>
+          </div>
           <div class="cal-hdr">
             <div class="cal-lbl">월</div><div class="cal-lbl">화</div><div class="cal-lbl">수</div>
             <div class="cal-lbl">목</div><div class="cal-lbl">금</div><div class="cal-lbl">토</div><div class="cal-lbl">일</div>
           </div>
           <div class="cal-grid" id="calGrid"></div>
+          <div class="card-note" style="margin-top:8px">날짜를 누르면 그 날 예약을 추가할 수 있어요.</div>
         </div>
       </div>
       <div>
         <div class="card">
-          <div class="card-hd">예약된 게시물</div>
+          <div class="card-hd">예정된 게시물</div>
           <div class="sch-list" id="scheduledList"></div>
-          <div class="warn-box">⚠ 자동 업로드 기능은 현재 개발 중입니다. 실제 업로드는 수동으로 진행해주세요.</div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 예약 추가/수정 모달 -->
+  <div id="scheduleModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center">
+    <div style="background:var(--white);border-radius:14px;padding:22px;width:min(440px,92vw);max-height:90vh;overflow:auto">
+      <div style="font-weight:700;font-size:16px;margin-bottom:14px">예약 게시물</div>
+      <input type="hidden" id="schModalId">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><label style="font-size:12px;font-weight:600">날짜</label><input type="date" id="schDate" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></div>
+        <div><label style="font-size:12px;font-weight:600">시간</label><input type="time" id="schTime" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></div>
+      </div>
+      <div style="margin-bottom:10px"><label style="font-size:12px;font-weight:600">채널</label>
+        <select id="schChannel" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:inherit">
+          <option>인스타그램</option><option>스레드</option><option>네이버 블로그</option><option>기타</option>
+        </select>
+      </div>
+      <div style="margin-bottom:10px"><label style="font-size:12px;font-weight:600">제목</label><input type="text" id="schTitle" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></div>
+      <div style="margin-bottom:16px"><label style="font-size:12px;font-weight:600">내용</label><textarea id="schBody" style="width:100%;min-height:120px;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></textarea></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-outline" onclick="closeScheduleModal()">취소</button>
+        <button class="btn btn-black" onclick="submitSchedule()">저장</button>
       </div>
     </div>
   </div>
@@ -524,7 +527,6 @@ async function tryUnlock(){
 const PAGE_META = {
   blog:{title:'블로그 글 생성',sub:'네이버 키워드 검색 및 경쟁력 분석으로 최적의 블로그 글을 생성합니다'},
   carousel:{title:'피드 만들기',sub:'인스타그램/스레드용 슬라이드 피드를 AI로 자동 생성합니다'},
-  aiimage:{title:'AI 사진 생성',sub:'AI 헤어 모델 이미지 프롬프트를 생성합니다'},
   schedule:{title:'자동 업로드',sub:'콘텐츠 발행 일정을 관리하고 예약 게시물을 설정합니다'},
   jaryosil:{title:'희안헤어 자료실',sub:'희안헤어 전용 자료 및 성장 나침반'},
   settings:{title:'설정',sub:'API 키 및 프로필을 설정합니다'},
@@ -761,13 +763,22 @@ ${personaBlock}
 - 느낌표·물결표(~)를 남발하지 마라. 문장 끝마다 쓰지 말 것.
 - 친근한 톤이어도 어휘는 신뢰감 있게. 가벼워 보이는 인터넷 말투는 빼라.
 
-[제목] 검색에 걸리게 지역+시술명을 자연스럽게 넣되, 키워드 나열이 아니라 사람이 클릭하고 싶게. 맨 첫 줄에 한 줄. 제목에는 특수기호(* # / [] () ★ ♥ ▶ 등)와 이모지를 쓰지 말고 한글·숫자·공백·쉼표만 사용해라.${designer?' 제목 안에 디자이너명('+designer+')도 자연스럽게 한 번 넣어라(예: 마곡동 디지털펌 '+designer+').':''}
+[제목] 검색에 걸리게 지역+시술명을 자연스럽게 넣되, 키워드 나열이 아니라 사람이 클릭하고 싶게. 맨 첫 줄에 한 줄. 제목에는 특수기호(* # / [] () ★ ♥ ▶ 등)와 이모지를 쓰지 말고 한글·숫자·공백·쉼표만 사용해라. 제목 안에 반드시 다음 세 가지를 모두 자연스럽게 넣어라: ①지역명(${region}) ②샵 이름(${shop||'우리샵'})${designer?' ③디자이너명('+designer+')':' ③시술명('+svc+')'}. (예: ${region} ${svc} ${shop||'우리샵'}${designer?' '+designer:''} ~)
 
 [사진 자리] 글 흐름에 맞는 위치에 4~6개, 이 형식으로 한 줄씩: [비포사진] [애프터사진] [시술과정사진] [결과사진] [매장사진]
 
 [마무리] 맨 끝에 해시태그 10개 이상. 지역명·시술명 포함(#${region}${svc} 형태).
 
-지역명+시술명은 본문에 자연스럽게 3회 이상. 과장이나 없는 효능은 쓰지 마라. 제목부터 해시태그까지 글만 바로 출력. 설명·머리말 없이.`;
+[본문 필수 포함 — 검색 노출]
+- 지역명(${region})과 시술명(${svc})을 본문에 자연스럽게 각각 3회 이상.
+- 샵 이름(${shop||'우리샵'})을 본문에 최소 2회 자연스럽게 언급(키워드 나열 아님, 문맥 속에).
+${designer?'- 디자이너명('+designer+')을 본문에 최소 1회 1인칭 또는 소개 형태로 자연스럽게 넣어라.\n':''}- 단, 위 단어들을 어색하게 반복하지 마라. 사람이 읽었을 때 자연스러운 흐름 안에서 녹여라.
+${extra?`
+[추가 정보 — SEO 키워드로 녹이기]
+다음 내용을 본문 안에 검색 키워드처럼 자연스럽게 녹여 써라. 별도 목록이나 끼워넣은 티가 나지 않게, 위 [글 스타일] 페르소나의 말투와 흐름에 맞춰 문장 속에 자연스럽게 포함시켜라. 해시태그에도 관련 키워드를 반영하라:
+"${extra}"
+`:''}
+과장이나 없는 효능은 쓰지 마라. 제목부터 해시태그까지 글만 바로 출력. 설명·머리말 없이.`;
   let text=await callGemini(prompt,2200);
   if(!text){result.innerHTML='';hint.style.display='';return;}
   // 자음·모음 낱자 반복(ㅋㅋ, ㅎㅎ, ㅠㅠ, ㄷㄷ 및 옛한글 초성 ᄏᄒ 변형)을 어떤 형태로도 제거
@@ -781,6 +792,11 @@ ${personaBlock}
     .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu,'') // 이모지/기호
     .replace(/[*#/\\\[\]()<>★☆♥♡▶◀●◆■□~`^|"']/g,'') // 특수기호
     .replace(/\s{2,}/g,' ').trim();
+  // 제목에 지역명·샵 이름이 빠지면 앞에 보강
+  let _prefix=[];
+  if(region && region!=='OO동' && !titleLine.includes(region)) _prefix.push(region);
+  if(shop && !titleLine.includes(shop)) _prefix.push(shop);
+  if(_prefix.length) titleLine = _prefix.join(' ') + ' ' + titleLine;
   const bodyText=_lines.slice(_ti+1).join('\n').replace(/^\n+/,'');
   // [비포사진] 같은 자리표시를 눈에 띄는 사진 박스로 변환
   const withPhotos=bodyText.replace(/\[([^\]]*?사진)\]/g,(m,label)=>
@@ -796,10 +812,10 @@ ${personaBlock}
     <div class="result-actions">
       <span style="font-size:12px;color:var(--gray3);align-self:center">글자수: ${bodyText.replace(/\s/g,'').length}자</span>
       <button class="btn btn-secondary" onclick="copyResultText(this)">📋 본문 복사</button>
-      <button class="btn btn-secondary" onclick="generateBlogImage()">🎨 어울리는 사진 만들기</button>
+      <button class="btn btn-secondary" onclick="scheduleFromContent(document.getElementById('blogTitleText').textContent, window._blogText, '네이버 블로그')">📅 예약에 추가</button>
       <button class="btn btn-primary" onclick="generateBlog()">🔄 재생성</button>
     </div>
-    <div id="blogImgResult" style="margin-top:12px"></div>`;
+`;
   window._blogText=bodyText;
   window._blogTitle=titleLine;
   window._blogCtx={region,svc,designer};
@@ -875,43 +891,14 @@ function copyResultText(btn){
   if(!window._blogText)return;
   navigator.clipboard.writeText(window._blogText).then(()=>{btn.textContent='✅ 복사됨';setTimeout(()=>btn.textContent='📋 본문 복사',1500);});
 }
-async function generateBlogImage(){
-  const ctx=window._blogCtx||{};
-  const box=document.getElementById('blogImgResult');
-  if(!box)return;
-  box.innerHTML='<div class="loading"><div class="spinner"></div> 어울리는 사진 아이디어 만드는 중...</div>';
-  const prompt=`미용실 블로그(${ctx.region||''} ${ctx.svc||'시술'})에 어울리는 사진 4장을 AI 이미지 생성기에 넣을 영어 프롬프트로 만들어라.
-비포/시술과정/애프터/매장 분위기를 골고루.
-
-[가장 중요 — AI로 만든 티가 절대 나면 안 된다]
-- 실제 한국 미용실에서 스마트폰으로 찍은 듯한 자연스러운 사진. 광고용 스튜디오컷 금지.
-- 과한 보정·인공조명·비현실적 피부 금지. 자연광 또는 미용실 일반 조명, 약간의 생활감.
-- 모델은 평범하고 현실적인 한국인. 과도하게 완벽한 얼굴/몸매 금지.
-- 헤어 디테일(컬, 컬러, 결)이 사실적으로 보이게. 약간의 잔머리·자연스러운 흐트러짐 OK.
-- 각 프롬프트 끝에 이런 키워드 포함: candid, natural lighting, shot on smartphone, realistic skin texture, no over-retouching.
-
-JSON만: [{"label":"비포","prompt":"english prompt"},{"label":"시술과정","prompt":"..."},{"label":"애프터","prompt":"..."},{"label":"매장","prompt":"..."}] 설명 없이.`;
-  const res=await callGemini(prompt,800);
-  if(!res){box.innerHTML='<div style="color:var(--gray3);font-size:13px;padding:12px">생성 실패. 다시 시도해주세요.</div>';return;}
-  try{
-    const arr=JSON.parse(res.replace(/```json|```/g,'').trim());
-    box.innerHTML='<div style="font-size:13px;color:var(--gray3);margin-bottom:8px">📌 아래 프롬프트를 Whisk·미드저니 등 이미지 생성 AI에 넣으면 사진이 나와요</div>'+
-      arr.map(o=>`<div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px">
-        <div style="font-weight:600;font-size:13px;margin-bottom:4px">🖼️ ${o.label}</div>
-        <div style="font-size:12.5px;color:var(--gray2);line-height:1.6">${o.prompt}</div>
-        <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="navigator.clipboard.writeText('${o.prompt.replace(/'/g,"\\'")}');this.textContent='✅ 복사됨';setTimeout(()=>this.textContent='📋 프롬프트 복사',1500)">📋 프롬프트 복사</button>
-      </div>`).join('');
-  }catch{box.innerHTML='<div style="color:var(--gray3);font-size:13px;padding:12px">오류. 다시 시도해주세요.</div>';}
-}
-
 // CAROUSEL
 async function generateCarousel(){
-  const topic=document.getElementById('carTopic').value.trim();
-  if(!topic){toast('주제를 입력해주세요');return;}
+  const topic=document.getElementById('carTopicPreset').value.trim();
+  if(!topic){toast('주제 카테고리를 골라주세요');return;}
   const tone=document.getElementById('carTone').value;
   const ch=chipState.carCh;
   carState.topic=topic; carState.ch=ch;
-  carState.shop=(document.getElementById('carAccount').value.trim()||'heean_hair').replace(/^@/,'');
+  carState.shop='heean_hair';
   document.getElementById('carPreview').innerHTML='<div class="loading"><div class="spinner"></div> 캡션 생성 중...</div>';
   const prompt=`너는 HEEAN HAIR(헤어 살롱) 인스타 게시물 카피라이터다. 주제:"${topic}", 분야:${ch}, 톤:${tone}.
 
@@ -977,58 +964,139 @@ function copyCarCaption(btn){
 
 
 // AI IMAGE
-async function generateAIImage(){
-  const hairType=document.getElementById('aiHairType').value;
-  const hairColor=document.getElementById('aiHairColor').value;
-  const mood=document.getElementById('aiMood').value;
-  const extra=document.getElementById('aiExtraPrompt').value.trim();
-  const count=parseInt(document.getElementById('aiImgCount').value);
-  const card=document.getElementById('aiImageResultCard');
-  const grid=document.getElementById('aiImgResults');
-  card.style.display='block';
-  grid.innerHTML=`<div class="loading" style="grid-column:1/-1"><div class="spinner"></div> 프롬프트 생성 중...</div>`;
-  const prompt=`AI 이미지 생성 프롬프트 전문가. 헤어:${hairType} ${hairColor}, 분위기:${mood}${extra?', 추가:'+extra:''}.
-Midjourney용 영어 프롬프트 ${count}개. JSON만: [{"prompt":"영어","desc":"한국어설명"}]`;
-  const result=await callGemini(prompt,800);
-  if(!result){grid.innerHTML='';return;}
-  try{
-    const prompts=JSON.parse(result.replace(/```json|```/g,'').trim());
-    grid.innerHTML=prompts.map((p,i)=>`
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px">
-        <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px">프롬프트 ${i+1}</div>
-        <div style="font-size:12px;color:var(--ink3);margin-bottom:8px">${p.desc||''}</div>
-        <div style="font-size:11px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;line-height:1.6;color:var(--ink2);font-family:monospace;word-break:break-all">${p.prompt||''}</div>
-        <button class="btn btn-secondary" style="width:100%;margin-top:8px;font-size:12px" onclick="copyPrompt(this,'${encodeURIComponent(p.prompt||'')}')">📋 복사</button>
-      </div>`).join('');
-    toast('Midjourney나 Leonardo.ai에 붙여넣어 사용하세요');
-  }catch{grid.innerHTML='<div style="color:var(--ink3);font-size:13px;padding:20px;text-align:center">오류. 다시 시도해주세요.</div>';}
-}
-function copyPrompt(btn,enc){navigator.clipboard.writeText(decodeURIComponent(enc)).then(()=>{btn.textContent='✅ 복사됨';setTimeout(()=>btn.textContent='📋 복사',1500);});}
-
-
 // CALENDAR
-const SCHEDULED=[
-  {day:3,title:'봄 단발 추천 피드',channel:'인스타그램',time:'5/3 오후 7:00',status:'예약됨',color:'#e1567c'},
-  {day:10,title:'단발 트렌드 스레드',channel:'스레드',time:'5/10 오후 3:30',status:'예약됨',color:'#4a5a3a'},
-  {day:17,title:'펌 종류 비교 피드',channel:'인스타그램',time:'5/17 오후 7:00',status:'대기중',color:'#c4a96a'},
-];
+// ===== 예약/발행 (localStorage 기반 반자동) =====
+function getSchedules(){ try{return JSON.parse(localStorage.getItem('hh_schedules')||'[]');}catch{return [];} }
+function setSchedules(arr){ localStorage.setItem('hh_schedules', JSON.stringify(arr)); }
+function saveSchedule(item){
+  const arr=getSchedules();
+  if(item.id){ const i=arr.findIndex(x=>x.id===item.id); if(i>=0) arr[i]=item; else arr.push(item); }
+  else { item.id='sch_'+Date.now(); arr.push(item); }
+  setSchedules(arr); return item;
+}
+function deleteSchedule(id){ setSchedules(getSchedules().filter(x=>x.id!==id)); renderCalendar(); }
+function markPublished(id){
+  const arr=getSchedules(); const i=arr.findIndex(x=>x.id===id);
+  if(i>=0){ arr[i].status='발행완료'; setSchedules(arr); renderCalendar(); toast('발행 완료로 표시했어요'); }
+}
+
+let calYear, calMonth; // 0-indexed month
+function calKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function todayKey(){ return calKey(new Date()); }
+
+const CH_COLOR={'인스타그램':'#e1567c','스레드':'#4a5a3a','네이버 블로그':'#03c75a','기타':'#c4a96a'};
+const CH_URL={'인스타그램':'https://www.instagram.com/','스레드':'https://www.threads.net/','네이버 블로그':'https://blog.naver.com/'};
+
 function renderCalendar(){
+  if(calYear===undefined){ const t=new Date(); calYear=t.getFullYear(); calMonth=t.getMonth(); }
   const grid=document.getElementById('calGrid');
-  const hasPosts=new Set(SCHEDULED.map(s=>s.day));
+  const titleEl=document.getElementById('calTitle');
+  if(titleEl) titleEl.textContent=`${calYear}년 ${calMonth+1}월`;
+  const first=new Date(calYear,calMonth,1);
+  const startDay=(first.getDay()+6)%7; // 월요일 시작
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const sch=getSchedules();
+  const byDay={};
+  sch.forEach(s=>{ if(s.date){ (byDay[s.date]=byDay[s.date]||[]).push(s); } });
   let html='';
-  for(let i=0;i<3;i++) html+=`<div class="cal-day empty"></div>`;
-  for(let d=1;d<=31;d++){
-    html+=`<div class="cal-day${d===30?' today':''}${hasPosts.has(d)?' has-post':''}">${d}</div>`;
+  for(let i=0;i<startDay;i++) html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=key===todayKey();
+    const items=byDay[key]||[];
+    const dots=items.slice(0,3).map(it=>`<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:${CH_COLOR[it.channel]||'#999'}"></span>`).join('');
+    html+=`<div class="cal-day${isToday?' today':''}${items.length?' has-post':''}" onclick="openScheduleModal(null,'${key}')" style="cursor:pointer">
+      <div>${d}</div><div style="display:flex;gap:2px;justify-content:center;margin-top:2px;min-height:5px">${dots}</div></div>`;
   }
   grid.innerHTML=html;
-  document.getElementById('scheduledList').innerHTML=SCHEDULED.map(s=>`
-    <div class="scheduled-item">
-      <div class="scheduled-dot" style="background:${s.color}"></div>
-      <div class="scheduled-info"><div class="s-title">${s.title}</div><div class="s-meta">${s.channel} · ${s.time}</div></div>
-      <span class="scheduled-badge" style="background:${s.status==='예약됨'?'var(--green-soft)':'#fff8e0'};color:${s.status==='예약됨'?'#4a7a3a':'#8a6a00'}">${s.status}</span>
-    </div>`).join('');
+  renderScheduleBoard();
+}
+function calPrev(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function calNext(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+
+// "발행할 차례" 보드 + 전체 예약 목록
+function renderScheduleBoard(){
+  const sch=getSchedules().filter(s=>s.status!=='발행완료').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const tk=todayKey();
+  const due=sch.filter(s=>s.date<=tk);
+  const upcoming=sch.filter(s=>s.date>tk);
+  const dueEl=document.getElementById('dueBoard');
+  if(dueEl){
+    dueEl.innerHTML = due.length ? due.map(renderDueCard).join('') :
+      '<div style="font-size:13px;color:var(--gray3);padding:10px 0">지금 올릴 차례인 예약이 없어요.</div>';
+  }
+  const listEl=document.getElementById('scheduledList');
+  if(listEl){
+    listEl.innerHTML = upcoming.length ? upcoming.map(s=>`
+      <div class="scheduled-item">
+        <div class="scheduled-dot" style="background:${CH_COLOR[s.channel]||'#999'}"></div>
+        <div class="scheduled-info"><div class="s-title">${s.title||'(제목 없음)'}</div><div class="s-meta">${s.channel} · ${s.date} ${s.time||''}</div></div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-outline btn-sm" onclick="openScheduleModal('${s.id}')">수정</button>
+          <button class="btn btn-outline btn-sm" onclick="deleteSchedule('${s.id}')">삭제</button>
+        </div>
+      </div>`).join('') :
+      '<div style="font-size:13px;color:var(--gray3);padding:10px 0">예정된 게시물이 없어요. "+ 새 예약"으로 추가하세요.</div>';
+  }
+}
+function renderDueCard(s){
+  const url=CH_URL[s.channel]||'';
+  return `<div style="border:1px solid var(--border);border-left:3px solid ${CH_COLOR[s.channel]||'#999'};border-radius:8px;padding:12px;margin-bottom:10px;background:var(--card2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div style="font-weight:700;font-size:14px">${s.title||'(제목 없음)'}</div>
+      <span style="font-size:11px;color:var(--gray3)">${s.channel} · ${s.date} ${s.time||''}</span>
+    </div>
+    ${s.body?`<div style="font-size:12px;color:var(--ink);white-space:pre-wrap;max-height:60px;overflow:hidden;margin-bottom:8px;opacity:.8">${s.body.slice(0,120)}${s.body.length>120?'…':''}</div>`:''}
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-sm" onclick="copySchedule('${s.id}',this)">📋 전체 복사</button>
+      ${url?`<a class="btn btn-secondary btn-sm" href="${url}" target="_blank" style="text-decoration:none">↗ ${s.channel} 열기</a>`:''}
+      <button class="btn btn-black btn-sm" onclick="markPublished('${s.id}')">✅ 발행 완료</button>
+    </div>
+  </div>`;
+}
+function copySchedule(id,btn){
+  const s=getSchedules().find(x=>x.id===id); if(!s) return;
+  const text=(s.title?s.title+'\n\n':'')+(s.body||'');
+  navigator.clipboard.writeText(text).then(()=>{ btn.textContent='✅ 복사됨'; setTimeout(()=>btn.textContent='📋 전체 복사',1500); });
 }
 
+// 예약 추가/수정 모달
+function openScheduleModal(id, presetDate){
+  const s = id ? getSchedules().find(x=>x.id===id) : {date:presetDate||todayKey(), time:'19:00', channel:'인스타그램', title:'', body:''};
+  document.getElementById('schModalId').value = s.id||'';
+  document.getElementById('schDate').value = s.date||todayKey();
+  document.getElementById('schTime').value = s.time||'19:00';
+  document.getElementById('schChannel').value = s.channel||'인스타그램';
+  document.getElementById('schTitle').value = s.title||'';
+  document.getElementById('schBody').value = s.body||'';
+  document.getElementById('scheduleModal').style.display='flex';
+}
+function closeScheduleModal(){ document.getElementById('scheduleModal').style.display='none'; }
+function submitSchedule(){
+  const item={
+    id: document.getElementById('schModalId').value||undefined,
+    date: document.getElementById('schDate').value,
+    time: document.getElementById('schTime').value,
+    channel: document.getElementById('schChannel').value,
+    title: document.getElementById('schTitle').value.trim(),
+    body: document.getElementById('schBody').value.trim(),
+    status:'예약됨'
+  };
+  if(!item.date){ toast('날짜를 골라주세요'); return; }
+  saveSchedule(item); closeScheduleModal(); renderCalendar(); toast('예약을 저장했어요');
+}
+
+// 생성한 콘텐츠를 예약으로 보내기
+function scheduleFromContent(title, body, channel){
+  openScheduleModal(null);
+  document.getElementById('schTitle').value=title||'';
+  document.getElementById('schBody').value=body||'';
+  if(channel) document.getElementById('schChannel').value=channel;
+  nav('schedule');
+  setTimeout(()=>document.getElementById('scheduleModal').style.display='flex',50);
+}
+
+// SETTINGS
 // SETTINGS
 function checkSettingsKey(){ /* 키는 서버 관리 - 할 일 없음 */ }
 
@@ -1130,9 +1198,9 @@ function deleteMyTemplate(idx){
 
 // ===== 오버레이 편집기 =====
 // ===== 오버레이 사진 (드래그/리사이즈) =====
-let ovLayerImg = null;
-let ovState = { src:null, x:0.5, y:0.5, w:0.5, opacity:1, radius:0 }; // x,y,w 는 컨테이너 대비 비율
-let _ovDrag = null;
+// ===== 오버레이 사진 (다중 · 자동 그리드) =====
+let ovImages = [];                 // {src, img} 배열, 최대 10
+let ovState = { gap:6, radius:0 }; // 간격(px, 1080폭 기준 환산), 둥글기(%)
 
 function ovToggle(){
   const w=document.getElementById('ovInlineWrap');
@@ -1142,135 +1210,106 @@ function ovToggle(){
 }
 
 function ovLoadOverlayImg(input){
-  const file = input.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      ovLayerImg = img;
-      ovState.src = e.target.result;
-      ovState.x=0.5; ovState.y=0.5; ovState.w=0.5;
-      ovRedraw();
+  const files=[...input.files];
+  if(!files.length) return;
+  let loaded=0;
+  files.forEach(file=>{
+    if(ovImages.length>=10){ return; }
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        if(ovImages.length<10){ ovImages.push({src:e.target.result, img}); }
+        loaded++;
+        if(loaded===files.length || ovImages.length>=10){ ovRedraw(); ovRenderThumbs(); }
+      };
+      img.src=e.target.result;
     };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
+  });
+  if(files.length>10) toast('최대 10장까지만 올라가요');
+  input.value='';
 }
 
 function ovRemoveImg(){
-  ovLayerImg=null; ovState.src=null;
-  const ex=document.querySelector('#carPreview .ov-img-wrap'); if(ex) ex.remove();
+  ovImages=[];
+  const ex=document.querySelector('#carPreview .ov-grid'); if(ex) ex.remove();
+  ovRenderThumbs();
   const inp=document.getElementById('ovImgInput'); if(inp) inp.value='';
 }
+function ovRemoveOne(i){ ovImages.splice(i,1); ovRedraw(); ovRenderThumbs(); }
 
-// 미리보기 위에 실제 DOM 이미지를 띄우고 드래그/리사이즈 핸들 부착
+function ovRenderThumbs(){
+  const t=document.getElementById('ovThumbs'); if(!t) return;
+  t.innerHTML=ovImages.map((o,i)=>`<div style="position:relative;width:46px;height:46px">
+    <img src="${o.src}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;border:1px solid var(--border)">
+    <button onclick="ovRemoveOne(${i})" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border:none;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:11px;line-height:1;cursor:pointer">×</button>
+  </div>`).join('');
+}
+
+// 장수 -> [열, 행]
+function ovGridDims(n){
+  if(n<=1) return [1,1];
+  if(n===2) return [2,1];
+  if(n<=4) return [2,2];
+  if(n<=6) return [3,2];
+  if(n<=9) return [3,3];
+  return [2,5]; // 10
+}
+
+// 미리보기 위에 그리드로 사진 배치
 function ovRedraw(){
-  const slideDiv = document.querySelector('#carPreview .ig-img');
-  if(!slideDiv){ return; }
+  const slideDiv=document.querySelector('#carPreview .ig-img');
+  if(!slideDiv) return;
   slideDiv.style.position='relative';
-  let wrap = slideDiv.querySelector('.ov-img-wrap');
-
-  if(!ovLayerImg){ if(wrap) wrap.remove(); return; }
-
-  const cw = slideDiv.offsetWidth, ch = slideDiv.offsetHeight;
-  const iw = cw * ovState.w;
-  const ih = iw * (ovLayerImg.height/ovLayerImg.width);
-  const left = cw*ovState.x - iw/2;
-  const top  = ch*ovState.y - ih/2;
-
-  if(!wrap){
-    wrap = document.createElement('div');
-    wrap.className='ov-img-wrap';
-    wrap.innerHTML = `<img class="ov-img" draggable="false"><div class="ov-handle ov-handle-br"></div>`;
-    slideDiv.appendChild(wrap);
-    _ovBindDrag(wrap, slideDiv);
-  }
-  wrap.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${iw}px;height:${ih}px;cursor:move;touch-action:none;z-index:5;`;
-  const im = wrap.querySelector('img');
-  im.src = ovState.src;
-  im.style.cssText = `width:100%;height:100%;object-fit:cover;display:block;opacity:${ovState.opacity};border-radius:${iw*ovState.radius/100}px;pointer-events:none;`;
+  let grid=slideDiv.querySelector('.ov-grid');
+  if(!ovImages.length){ if(grid) grid.remove(); return; }
+  const [cols,rows]=ovGridDims(ovImages.length);
+  const gapPx=(ovState.gap/1080)*slideDiv.offsetWidth; // 1080 기준 비율 환산
+  if(!grid){ grid=document.createElement('div'); grid.className='ov-grid'; slideDiv.appendChild(grid); }
+  grid.style.cssText=`position:absolute;inset:0;display:grid;grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr);gap:${gapPx}px;padding:${gapPx}px;z-index:5;box-sizing:border-box;`;
+  grid.innerHTML=ovImages.map(o=>`<img src="${o.src}" style="width:100%;height:100%;object-fit:cover;border-radius:${ovState.radius}px;display:block">`).join('');
 }
 
-function _ovBindDrag(wrap, slideDiv){
-  const handle = wrap.querySelector('.ov-handle-br');
-  const getPt = ev => ev.touches ? ev.touches[0] : ev;
-
-  // 이동
-  wrap.addEventListener('mousedown', startMove);
-  wrap.addEventListener('touchstart', startMove, {passive:false});
-  function startMove(ev){
-    if(ev.target.classList.contains('ov-handle')) return;
-    ev.preventDefault();
-    const p=getPt(ev);
-    _ovDrag={mode:'move', sx:p.clientX, sy:p.clientY, ox:ovState.x, oy:ovState.y};
-    _ovAttach();
-  }
-  // 크기 (우하단 핸들)
-  handle.addEventListener('mousedown', startResize);
-  handle.addEventListener('touchstart', startResize, {passive:false});
-  function startResize(ev){
-    ev.preventDefault(); ev.stopPropagation();
-    const p=getPt(ev);
-    _ovDrag={mode:'resize', sx:p.clientX, ow:ovState.w};
-    _ovAttach();
-  }
-  function _ovAttach(){
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-    document.addEventListener('touchmove', onMove, {passive:false});
-    document.addEventListener('touchend', onUp);
-  }
-  function onMove(ev){
-    if(!_ovDrag) return;
-    ev.preventDefault();
-    const p=getPt(ev);
-    const cw=slideDiv.offsetWidth, ch=slideDiv.offsetHeight;
-    if(_ovDrag.mode==='move'){
-      ovState.x = Math.max(0, Math.min(1, _ovDrag.ox + (p.clientX-_ovDrag.sx)/cw));
-      ovState.y = Math.max(0, Math.min(1, _ovDrag.oy + (p.clientY-_ovDrag.sy)/ch));
-    } else {
-      ovState.w = Math.max(0.1, Math.min(1.5, _ovDrag.ow + (p.clientX-_ovDrag.sx)/cw));
-    }
-    ovRedraw();
-  }
-  function onUp(){
-    _ovDrag=null;
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onUp);
-  }
-}
-
-// 저장: 배경(템플릿/단색) + 오버레이 사진을 4:5 캔버스로 합성
+// 저장: 1080x1350 캔버스에 동일 그리드로 합성
 function ovDownload(){
-  const slideDiv = document.querySelector('#carPreview .ig-img');
+  const slideDiv=document.querySelector('#carPreview .ig-img');
   if(!slideDiv){ toast('먼저 캡션을 생성해주세요'); return; }
-  const cw=1080, ch=1350; // 인스타 4:5
+  const cw=1080, ch=1350;
   const canvas=document.getElementById('ovCanvas');
   canvas.width=cw; canvas.height=ch;
   const ctx=canvas.getContext('2d');
 
-  const paintOverlay = () => {
-    if(ovLayerImg){
-      const iw=cw*ovState.w;
-      const ih=iw*(ovLayerImg.height/ovLayerImg.width);
-      const ix=cw*ovState.x - iw/2;
-      const iy=ch*ovState.y - ih/2;
-      ctx.save();
-      ctx.globalAlpha=ovState.opacity;
-      if(ovState.radius>0){
-        const r=iw*ovState.radius/100;
-        ctx.beginPath();
-        ctx.moveTo(ix+r,iy); ctx.lineTo(ix+iw-r,iy);
-        ctx.quadraticCurveTo(ix+iw,iy,ix+iw,iy+r); ctx.lineTo(ix+iw,iy+ih-r);
-        ctx.quadraticCurveTo(ix+iw,iy+ih,ix+iw-r,iy+ih); ctx.lineTo(ix+r,iy+ih);
-        ctx.quadraticCurveTo(ix,iy+ih,ix,iy+ih-r); ctx.lineTo(ix,iy+r);
-        ctx.quadraticCurveTo(ix,iy,ix+r,iy); ctx.closePath(); ctx.clip();
-      }
-      ctx.drawImage(ovLayerImg,ix,iy,iw,ih);
-      ctx.restore();
+  const drawRounded=(x,y,w,h,r)=>{
+    r=Math.min(r,w/2,h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+  };
+  const coverDraw=(img,dx,dy,dw,dh,r)=>{
+    const ir=img.width/img.height, dr=dw/dh;
+    let sx,sy,sw,sh;
+    if(ir>dr){ sh=img.height; sw=sh*dr; sx=(img.width-sw)/2; sy=0; }
+    else { sw=img.width; sh=sw/dr; sx=0; sy=(img.height-sh)/2; }
+    ctx.save();
+    if(r>0){ drawRounded(dx,dy,dw,dh,r); ctx.clip(); }
+    ctx.drawImage(img,sx,sy,sw,sh,dx,dy,dw,dh);
+    ctx.restore();
+  };
+  const paintOverlay=()=>{
+    if(ovImages.length){
+      const [cols,rows]=ovGridDims(ovImages.length);
+      const gap=ovState.gap;
+      const cellW=(cw-gap*(cols+1))/cols;
+      const cellH=(ch-gap*(rows+1))/rows;
+      const r=(ovState.radius/40)*Math.min(cellW,cellH)*0.4; // 미리보기 비율과 근사
+      ovImages.forEach((o,idx)=>{
+        const c=idx%cols, rr=Math.floor(idx/cols);
+        const dx=gap+c*(cellW+gap), dy=gap+rr*(cellH+gap);
+        coverDraw(o.img,dx,dy,cellW,cellH,r);
+      });
     }
     const a=document.createElement('a');
     a.download='heean_feed_'+Date.now()+'.jpg';
@@ -1294,7 +1333,6 @@ initTmplGallery();
 renderCarouselSlide();
 apiBanner('apiBannerBlog');
 apiBanner('apiBannerCarousel');
-apiBanner('apiBannerAI');
 renderSamples();
 </script>
 </body>

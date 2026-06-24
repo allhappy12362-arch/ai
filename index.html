@@ -756,6 +756,7 @@ ${personaBlock}
 [AI 티 금지 — 모든 스타일 공통]
 - "~하시는 분들께 추천드립니다", "~을 고려해보시는 것도 좋은 방법입니다" 같은 AI식 표현 금지.
 - 모든 문단을 똑같은 길이로 쓰지 마라. 길이를 들쭉날쭉하게.
+- 한 문단은 2~3문장을 넘기지 마라. 문단과 문단 사이에는 반드시 빈 줄(엔터 두 번)을 넣어 시각적으로 나눠라. 모바일에서 읽기 좋게.
 - 너무 매끄럽고 완벽하게 정리하지 마라. 사람 글은 약간의 불균형이 있다.
 
 [신뢰성 — 모든 스타일 공통]
@@ -797,7 +798,7 @@ ${extra?`
   if(region && region!=='OO동' && !titleLine.includes(region)) _prefix.push(region);
   if(shop && !titleLine.includes(shop)) _prefix.push(shop);
   if(_prefix.length) titleLine = _prefix.join(' ') + ' ' + titleLine;
-  const bodyText=_lines.slice(_ti+1).join('\n').replace(/^\n+/,'');
+  const bodyText=formatBlogBody(_lines.slice(_ti+1).join('\n').replace(/^\n+/,''));
   // [비포사진] 같은 자리표시를 눈에 띄는 사진 박스로 변환
   const withPhotos=bodyText.replace(/\[([^\]]*?사진)\]/g,(m,label)=>
     `<div class="photo-slot" data-label="${label}">📷 ${label} 자리<br><span style="font-size:11px;color:var(--gray3)">여기에 ${label}을 넣으세요</span></div>`);
@@ -891,6 +892,32 @@ function copyResultText(btn){
   if(!window._blogText)return;
   navigator.clipboard.writeText(window._blogText).then(()=>{btn.textContent='✅ 복사됨';setTimeout(()=>btn.textContent='📋 본문 복사',1500);});
 }
+// 블로그 본문 가독성 정리: 긴 문단을 2~3문장 단위로 끊고 문단 사이 빈 줄
+function formatBlogBody(raw){
+  if(!raw) return raw;
+  // 1) 이미 있는 문단 구분(빈 줄) 기준으로 1차 분리, 없으면 통째
+  let paras = raw.split(/\n{2,}/).map(p=>p.replace(/\n/g,' ').trim()).filter(Boolean);
+  const out = [];
+  paras.forEach(p=>{
+    // 문장 단위로 분리 (。. ! ? 뒤 공백 기준, 한국어 종결 포함)
+    const sentences = p.match(/[^.!?。…]*[.!?。…]+['"”’)]*\s*|[^.!?。…]+$/g) || [p];
+    let buf=[];
+    sentences.forEach(s=>{
+      buf.push(s.trim());
+      // 2~3문장마다 끊기 (대략 2문장 기준, 길면 일찍)
+      const joined=buf.join(' ');
+      if(buf.length>=2 || joined.length>90){
+        out.push(joined);
+        buf=[];
+      }
+    });
+    if(buf.length) out.push(buf.join(' '));
+  });
+  // 문단 사이 빈 줄
+  return out.join('\n\n');
+}
+
+
 // CAROUSEL
 async function generateCarousel(){
   const topic=document.getElementById('carTopicPreset').value.trim();

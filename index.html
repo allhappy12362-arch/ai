@@ -56,6 +56,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--black)
 .card+.card{margin-top:16px;}
 .card-hd{font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--gray2);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--gray5);}
 .card-note{font-size:12px;color:var(--gray3);margin-top:-8px;margin-bottom:14px;line-height:1.6;}
+.rt-box{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12.5px;line-height:1.7;color:var(--gray1);white-space:pre-wrap;max-height:180px;overflow-y:auto;}
 
 /* LAYOUT */
 .col2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
@@ -245,6 +246,7 @@ async function tryUnlock(){
     <div class="nav-group-label">콘텐츠 제작</div>
     <button class="tab active nav-item" onclick="nav('blog')"><span class="t-icon">📝</span><span>블로그 글 생성</span></button>
     <button class="tab nav-item" onclick="nav('carousel')"><span class="t-icon">🎨</span><span>피드 만들기</span></button>
+    <button class="tab nav-item" onclick="nav('retouch')"><span class="t-icon">✨</span><span>사진 보정</span></button>
     <div class="nav-group-label">자동화</div>
     <button class="tab nav-item" onclick="nav('schedule')"><span class="t-icon">📅</span><span>자동 업로드</span></button>
     <div class="nav-group-label">희안헤어</div>
@@ -431,6 +433,52 @@ async function tryUnlock(){
     </div>
   </div>
 
+  <!-- 사진 보정 -->
+  <div class="page" id="page-retouch">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div style="font-size:22px">✨</div>
+        <div style="font-weight:700;font-size:16px">고객 사진, ChatGPT로 자연스럽게 보정하기</div>
+      </div>
+      <div class="card-note" style="line-height:1.6">
+        아래 프롬프트를 복사한 뒤 <b>ChatGPT(Plus)</b>에 <b>사진과 같은 메시지에</b> 붙여넣으세요.
+        결과가 과하면 "2단계 피부 너무 매끈해, 더 약하게"처럼 <b>단계 번호를 집어서</b> 고치면 됩니다.
+        <br><span style="color:var(--gray3)">※ 핵심 원칙: 다른 사람처럼 예뻐지는 게 아니라, <b>본인이 컨디션 좋은 날 잘 찍힌 사진</b>이 되도록.</span>
+      </div>
+      <button class="btn btn-black" style="width:100%;margin-top:14px" onclick="openChatGPT()">💬 ChatGPT 새 탭으로 열기</button>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:4px">📋 보정 프롬프트 (얼굴·머릿결·조명 한 번에)</div>
+      <div class="card-note" style="margin-bottom:10px">헤어→피부→조명 순서로 알아서 처리합니다. 이거 하나 복사해서 사진과 같이 붙여넣으세요.</div>
+      <div class="rt-box" id="rt-all"></div>
+      <button class="btn btn-black" style="width:100%;margin-top:10px" onclick="copyRt('rt-all',this)">📋 프롬프트 복사</button>
+    </div>
+
+    <div class="card-note" style="margin:20px 4px 8px;font-weight:700;color:var(--gray1)">— 특수 상황용 —</div>
+
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:4px">😷 마스크 쓴 얼굴 완성</div>
+      <div class="card-note" style="margin-bottom:10px">기본 보정(얼굴·머릿결·조명)까지 포함돼 있어 이것만 복사하면 됩니다. 마스크에 가린 코·입을 채웁니다. <b style="color:var(--gray1)">고객 동의 하에만</b> — 없는 부위를 AI가 만들어 실제와 다를 수 있어요.</div>
+      <div class="rt-box" id="rt-mask"></div>
+      <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="copyRt('rt-mask',this)">📋 프롬프트 복사</button>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:4px">👕 옷 바꾸기</div>
+      <div class="card-note" style="margin-bottom:10px">기본 보정까지 포함. 이것만 복사하면 됩니다. 프롬프트 안 [원하는 옷] 부분만 원하는 대로 바꿔 쓰세요.</div>
+      <div class="rt-box" id="rt-cloth"></div>
+      <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="copyRt('rt-cloth',this)">📋 프롬프트 복사</button>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:4px">🏞️ 배경 바꾸기</div>
+      <div class="card-note" style="margin-bottom:10px">기본 보정까지 포함. 이것만 복사하면 됩니다. [원하는 배경] 부분만 바꿔 쓰세요.</div>
+      <div class="rt-box" id="rt-bg"></div>
+      <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="copyRt('rt-bg',this)">📋 프롬프트 복사</button>
+    </div>
+  </div>
+
   <!-- AI IMAGE -->
   <div class="page" id="page-schedule">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -527,6 +575,7 @@ async function tryUnlock(){
 const PAGE_META = {
   blog:{title:'블로그 글 생성',sub:'네이버 키워드 검색 및 경쟁력 분석으로 최적의 블로그 글을 생성합니다'},
   carousel:{title:'피드 만들기',sub:'인스타그램/스레드용 슬라이드 피드를 AI로 자동 생성합니다'},
+  retouch:{title:'사진 보정',sub:'고객 사진을 ChatGPT로 자연스럽게 보정하는 전용 프롬프트를 제공합니다'},
   schedule:{title:'자동 업로드',sub:'콘텐츠 발행 일정을 관리하고 예약 게시물을 설정합니다'},
   jaryosil:{title:'희안헤어 자료실',sub:'희안헤어 전용 자료 및 성장 나침반'},
   settings:{title:'설정',sub:'API 키 및 프로필을 설정합니다'},
@@ -549,6 +598,7 @@ function nav(page){
   if(page==='settings') checkSettingsKey();
   if(page==='blog') renderSamples();
   if(page==='carousel') renderCarouselSlide();
+  if(page==='retouch') fillRt();
 
   document.getElementById('pageHd').style.display = (page==='jaryosil') ? 'none' : 'block';
 }
@@ -1129,6 +1179,72 @@ function checkSettingsKey(){ /* 키는 서버 관리 - 할 일 없음 */ }
 
 
 // ===== 오버레이 편집기 =====
+const RT_PROMPTS = {
+  'rt-all': `이 사진을 전문 헤어살롱 포트폴리오용으로 보정해줘. 아래 순서대로 단계적으로 처리하고, 각 단계에서 원본을 과하게 벗어나지 마.
+
+[가장 중요한 원칙] 같은 인물로 명확히 알아볼 수 있어야 한다. 이목구비의 위치·크기·비율·얼굴형·표정은 절대 바꾸지 마라. 다른 사람처럼 예뻐지는 게 아니라, 본인이 컨디션 좋은 날 잘 찍힌 사진이어야 한다.
+
+1단계 - 헤어: 헤어스타일·길이·컬·염색 색상은 원본 그대로 100% 유지. 모양은 바꾸지 말고, 머릿결의 윤기와 결의 흐름, 컬의 또렷함만 살려 시술 직후처럼 건강하게. 푸석함·뜬 잔머리만 살짝 정리.
+
+2단계 - 피부: 잡티·붉은기·유분·다크서클만 자연스럽게 줄이고, 피부결과 모공 질감은 남겨라. 인형처럼 매끈하게 밀린 느낌이 나면 안 된다. 얼굴 붓기는 아주 약간만.
+
+3단계 - 조명·색감: 살롱 실내 조명의 노란기와 칙칙함을 자연광에 가깝게 화이트밸런스 보정. 노출·대비를 정리해 선명하고 화사하게, 얼굴에 빛이 부드럽게 돌게.
+
+[마무리] 전체적으로 보정 티가 나지 않게, 인스타그램에서 반응 좋은 자연스러운 톤으로. 의심스러우면 약하게 처리해라.`,
+  'rt-mask': `이 사진을 두 단계로 처리해줘.
+
+[먼저 기본 보정] 얼굴·머릿결·조명을 자연스럽게 보정하되, 같은 인물로 알아볼 수 있게 이목구비·얼굴형은 유지하고 과하게 바꾸지 마라. 머릿결은 윤기·결만 살리고 스타일은 그대로, 피부는 잡티·붉은기만 정리하고 질감은 남기고, 살롱 조명의 노란기를 자연광처럼 화이트밸런스 보정. 보정 티가 나면 안 된다.
+
+[그다음 마스크 완성] 인물이 마스크를 쓰고 있다. 마스크에 가려진 코와 입, 하관을 자연스럽게 채워 마스크를 벗은 얼굴로 완성해라. 보이는 부분(눈·눈썹·이마·얼굴형·헤어스타일)은 그대로 유지하고, 채워 넣는 코·입은 그 사람의 나이·성별·인상에 어울리게 무난하고 평범하게. 과장되거나 화려한 이목구비를 지어내지 말고, 표정은 눈매와 어울리는 은은한 정도로. 마스크 경계선·피부톤·조명이 티나지 않게 매끄럽게 이어라. 어색하면 더 평범하고 약하게. 인위적인 합성 티가 나면 안 된다.`,
+  'rt-cloth': `이 사진을 두 단계로 처리해줘.
+
+[먼저 기본 보정] 얼굴·머릿결·조명을 자연스럽게 보정하되, 같은 인물로 알아볼 수 있게 이목구비·얼굴형은 유지하고 과하게 바꾸지 마라. 머릿결은 윤기·결만 살리고 스타일은 그대로, 피부는 잡티·붉은기만 정리하고 질감은 남기고, 살롱 조명의 노란기를 자연광처럼 화이트밸런스 보정. 보정 티가 나면 안 된다.
+
+[그다음 옷 교체] 얼굴·머리·헤어스타일·표정·포즈·체형은 그대로 유지하고, 입고 있는 옷만 [원하는 옷: 예 - 깔끔한 검정 니트]로 자연스럽게 교체해라. 새 옷은 어깨·목·팔 위치와 자연스럽게 맞물리게 하고, 주름·질감·조명이 사진 전체와 어울리게 사실적으로. 목선과 얼굴 사이 경계가 어색하지 않게 매끄럽게. 배경은 그대로 두고 옷 외에는 바꾸지 마라. 원래 그 옷을 입고 찍은 것처럼 합성 티 없이.`,
+  'rt-bg': `이 사진을 두 단계로 처리해줘.
+
+[먼저 기본 보정] 얼굴·머릿결·조명을 자연스럽게 보정하되, 같은 인물로 알아볼 수 있게 이목구비·얼굴형은 유지하고 과하게 바꾸지 마라. 머릿결은 윤기·결만 살리고 스타일은 그대로, 피부는 잡티·붉은기만 정리하고 질감은 남기고, 노란기를 자연광처럼 화이트밸런스 보정. 보정 티가 나면 안 된다.
+
+[그다음 배경 교체] 인물·머리·헤어스타일·옷·포즈·표정은 그대로 유지하고, 배경만 [원하는 배경: 예 - 밝고 깔끔한 미용실 인테리어]로 자연스럽게 교체해라. 인물의 윤곽(특히 머리카락 가장자리)을 정교하게 살려 배경과 자연스럽게 분리하고, 잔머리가 뭉개지거나 잘리지 않게. 새 배경의 조명 방향·색온도를 인물의 빛과 일치시켜 오려붙인 느낌이 안 나게, 그림자도 새 배경에 맞게 자연스럽게. 원래 그 장소에서 찍은 것처럼 합성 티 없이.`
+};
+function fillRt(){ for(const id in RT_PROMPTS){ const el=document.getElementById(id); if(el) el.textContent=RT_PROMPTS[id]; } }
+function _doCopy(text){
+  // 1순위: 최신 Clipboard API (HTTPS/localhost에서만 동작)
+  if(navigator.clipboard && window.isSecureContext){
+    return navigator.clipboard.writeText(text);
+  }
+  // 2순위: 구형 execCommand 폴백 (file://·인앱브라우저 대응)
+  return new Promise((resolve,reject)=>{
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=text;
+      ta.style.position='fixed'; ta.style.left='-9999px'; ta.style.top='0';
+      ta.setAttribute('readonly','');
+      document.body.appendChild(ta);
+      ta.select(); ta.setSelectionRange(0, text.length);
+      const ok=document.execCommand('copy');
+      document.body.removeChild(ta);
+      ok ? resolve() : reject(new Error('execCommand 실패'));
+    }catch(e){ reject(e); }
+  });
+}
+function copyRt(id,btn){
+  _doCopy(RT_PROMPTS[id]).then(()=>{
+    const o=btn.textContent;
+    btn.textContent='✅ 복사됨 — ChatGPT에 사진과 함께 붙여넣으세요';
+    toast('복사됐어요. ChatGPT에 사진과 같이 붙여넣으세요');
+    setTimeout(()=>btn.textContent=o,2000);
+  }).catch(()=>{
+    // 최후: 프롬프트 박스를 직접 선택시켜 사용자가 길게눌러 복사하도록
+    const box=document.getElementById(id);
+    if(box){
+      const r=document.createRange(); r.selectNodeContents(box);
+      const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    }
+    toast('자동 복사가 막혔어요. 파란 글상자를 길게 눌러 복사하세요');
+  });
+}
+function openChatGPT(){ window.open('https://chatgpt.com/','_blank'); }
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 
 // INIT

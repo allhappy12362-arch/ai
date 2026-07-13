@@ -1385,11 +1385,21 @@ function ovDownload(){
         coverDraw(o.img,dx,dy,cellW,cellH,r);
       });
     }
-    const a=document.createElement('a');
-    a.download='heean_feed_'+Date.now()+'.jpg';
-    a.href=canvas.toDataURL('image/jpeg',0.93);
-    a.click();
-    toast('이미지 저장됐어요 ✅');
+    canvas.toBlob(async blob=>{
+      const file=new File([blob],'heean_feed_'+Date.now()+'.jpg',{type:'image/jpeg'});
+      // 폰: 공유창 → "이미지 저장" 누르면 사진첩으로
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        try{ await navigator.share({files:[file]}); return; }
+        catch(e){ if(e.name==='AbortError') return; /* 취소 */ }
+      }
+      // PC: 파일 다운로드
+      const a=document.createElement('a');
+      a.download=file.name;
+      a.href=URL.createObjectURL(blob);
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+      toast('이미지 저장됐어요 ✅');
+    },'image/jpeg',0.93);
   };
 
   if(carState.bgImg){

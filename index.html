@@ -416,7 +416,7 @@ async function tryUnlock(){
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
                 <div>
                   <label>사진 크기 <span id="ovScaleVal" style="font-weight:400;color:var(--gray3)">100%</span></label>
-                  <input type="range" id="ovScale" min="40" max="100" value="100" oninput="ovState.scale=parseInt(this.value);ovRedraw();document.getElementById('ovScaleVal').textContent=this.value+'%'" style="width:100%;accent-color:var(--black)">
+                  <input type="range" id="ovScale" min="40" max="100" value="100" oninput="ovSetScale(parseInt(this.value))" style="width:100%;accent-color:var(--black)">
                   <label>사진 간격 <span id="ovGapVal" style="font-weight:400;color:var(--gray3)">6</span></label>
                   <input type="range" id="ovGap" min="0" max="30" value="6" oninput="ovState.gap=parseInt(this.value);ovRedraw();document.getElementById('ovGapVal').textContent=this.value" style="width:100%;accent-color:var(--black)">
                 </div>
@@ -1383,7 +1383,7 @@ function deleteMyTemplate(idx){
 // ===== 오버레이 사진 (드래그/리사이즈) =====
 // ===== 오버레이 사진 (다중 · 자동 그리드) =====
 let ovImages = [];                 // {src, img} 배열, 최대 10
-let ovState = { gap:6, radius:0, scale:100 }; // 간격, 둥글기, 크기(%)
+let ovState = { gap:6, radius:0, scale:100, x:null, y:null }; // 간격, 둥글기, 크기(%), 위치(%; null=중앙)
 
 function ovToggle(){
   const w=document.getElementById('ovInlineWrap');
@@ -1440,7 +1440,55 @@ function ovGridDims(n){
   return [2,5]; // 10
 }
 
-// 미리보기 위에 그리드로 사진 배치
+// 미리보기 위에 그리드로 사진 배치 (드래그 이동 + 핀치/휠 크기조절)
+const ovPtrs=new Map();
+function ovClamp(){
+  ovState.scale=Math.max(20,Math.min(150,ovState.scale));
+  // 그리드가 완전히 밖으로 못 나가게 (최소 15%는 화면 안에)
+  ovState.x=Math.max(-ovState.scale+15,Math.min(85,ovState.x));
+  ovState.y=Math.max(-ovState.scale+15,Math.min(85,ovState.y));
+}
+function ovPos(grid){
+  ovClamp();
+  grid.style.left=ovState.x+'%'; grid.style.top=ovState.y+'%';
+  grid.style.width=ovState.scale+'%'; grid.style.height=ovState.scale+'%';
+  const sv=document.getElementById('ovScaleVal'); if(sv) sv.textContent=Math.round(ovState.scale)+'%';
+  const si=document.getElementById('ovScale'); if(si) si.value=Math.round(Math.min(100,ovState.scale));
+}
+function ovSetScale(v){
+  const cx=ovState.x+ovState.scale/2, cy=ovState.y+ovState.scale/2;
+  ovState.scale=v; ovState.x=cx-v/2; ovState.y=cy-v/2;
+  const g=document.querySelector('#carPreview .ov-grid'); if(g) ovPos(g); else ovRedraw();
+}
+function ovAttachDrag(grid){
+  grid.style.touchAction='none'; grid.style.cursor='move';
+  grid.onpointerdown=e=>{ grid.setPointerCapture(e.pointerId); ovPtrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); e.preventDefault(); };
+  grid.onpointermove=e=>{
+    if(!ovPtrs.has(e.pointerId)) return;
+    const slide=grid.parentElement, rect=slide.getBoundingClientRect();
+    if(ovPtrs.size===1){
+      const p=ovPtrs.get(e.pointerId);
+      ovState.x += (e.clientX-p.x)/rect.width*100;
+      ovState.y += (e.clientY-p.y)/rect.height*100;
+      ovPtrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      ovPos(grid);
+    } else if(ovPtrs.size===2){
+      const prev=[...ovPtrs.values()].map(p=>({...p}));
+      ovPtrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      const cur=[...ovPtrs.values()];
+      const d0=Math.hypot(prev[0].x-prev[1].x,prev[0].y-prev[1].y);
+      const d1=Math.hypot(cur[0].x-cur[1].x,cur[0].y-cur[1].y);
+      if(d0>5){
+        const cx=ovState.x+ovState.scale/2, cy=ovState.y+ovState.scale/2;
+        ovState.scale*=d1/d0; ovClamp();
+        ovState.x=cx-ovState.scale/2; ovState.y=cy-ovState.scale/2;
+        ovPos(grid);
+      }
+    }
+  };
+  grid.onpointerup=grid.onpointercancel=e=>{ ovPtrs.delete(e.pointerId); };
+  grid.onwheel=e=>{ e.preventDefault(); ovSetScale(Math.max(20,Math.min(150,ovState.scale+(e.deltaY<0?4:-4)))); };
+}
 function ovRedraw(){
   const slideDiv=document.querySelector('#carPreview .ig-img');
   if(!slideDiv) return;
@@ -1448,12 +1496,11 @@ function ovRedraw(){
   let grid=slideDiv.querySelector('.ov-grid');
   if(!ovImages.length){ if(grid) grid.remove(); return; }
   const [cols,rows]=ovGridDims(ovImages.length);
-  const gapPx=(ovState.gap/1080)*slideDiv.offsetWidth; // 1080 기준 비율 환산
-  if(!grid){ grid=document.createElement('div'); grid.className='ov-grid'; slideDiv.appendChild(grid); }
-  const sc=ovState.scale/100;
-  const inset=((1-sc)/2*100).toFixed(2)+'%';
-  grid.style.cssText=`position:absolute;top:${inset};left:${inset};width:${(sc*100).toFixed(2)}%;height:${(sc*100).toFixed(2)}%;display:grid;grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr);gap:${gapPx}px;padding:${gapPx}px;z-index:5;box-sizing:border-box;`;
-  grid.innerHTML=ovImages.map(o=>`<img src="${o.src}" style="width:100%;height:100%;object-fit:cover;border-radius:${ovState.radius}px;display:block">`).join('');
+  const gapPx=(ovState.gap/1080)*slideDiv.offsetWidth;
+  if(ovState.x===null||ovState.y===null){ ovState.x=(100-ovState.scale)/2; ovState.y=(100-ovState.scale)/2; }
+  if(!grid){ grid=document.createElement('div'); grid.className='ov-grid'; slideDiv.appendChild(grid); ovAttachDrag(grid); }
+  grid.style.cssText=`position:absolute;left:${ovState.x}%;top:${ovState.y}%;width:${ovState.scale}%;height:${ovState.scale}%;display:grid;grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr);gap:${gapPx}px;padding:${gapPx}px;z-index:5;box-sizing:border-box;touch-action:none;cursor:move;`;
+  grid.innerHTML=ovImages.map(o=>`<img src="${o.src}" style="width:100%;height:100%;object-fit:cover;border-radius:${ovState.radius}px;display:block;pointer-events:none">`).join('');
 }
 
 // 저장: 1080x1350 캔버스에 동일 그리드로 합성
@@ -1489,7 +1536,8 @@ function ovDownload(){
       const gap=ovState.gap;
       const sc=ovState.scale/100;
       const areaW=cw*sc, areaH=ch*sc;
-      const offX=(cw-areaW)/2, offY=(ch-areaH)/2;
+      const offX=(ovState.x===null?(100-ovState.scale)/2:ovState.x)/100*cw;
+      const offY=(ovState.y===null?(100-ovState.scale)/2:ovState.y)/100*ch;
       const cellW=(areaW-gap*(cols+1))/cols;
       const cellH=(areaH-gap*(rows+1))/rows;
       const r=(ovState.radius/40)*Math.min(cellW,cellH)*0.4; // 미리보기 비율과 근사

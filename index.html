@@ -434,7 +434,7 @@ async function tryUnlock(){
 
             <!-- 사진 얹기 패널 -->
             <div id="ovPanelImg">
-              <div class="card-note" style="margin-bottom:10px">드래그로 이동, 두 손가락으로 크기 조절, <b>사진을 톡 누르면 삭제</b>돼요. (최대 10장)</div>
+              <div class="card-note" style="margin-bottom:10px">드래그로 이동, 두 손가락으로 크기 조절. <b>사진을 누르면 삭제 버튼(✕)</b>이 떠요. (최대 10장)</div>
               <input type="file" id="ovImgInput" accept="image/*" multiple onchange="ovLoadOverlayImg(this)" style="display:none">
               <div style="display:flex;gap:8px">
                 <button class="btn btn-outline btn-sm" style="flex:1" onclick="ovPick()">➕ 사진 추가</button>
@@ -1207,6 +1207,7 @@ function deleteMyTemplate(idx){
 // ===== 오버레이 사진 (다중 · 자동 그리드) =====
 let ovImages = [];                 // {src, img} 배열, 최대 10
 let ovState = { gap:6, radius:0, scale:100, x:null, y:null }; // 간격, 둥글기, 크기(%), 위치(%; null=중앙)
+let ovSelIdx = null; // 선택된 사진 (삭제 버튼 표시용)
 
 function ovPick(){
   document.getElementById('ovImgInput').click();
@@ -1239,12 +1240,12 @@ function ovLoadOverlayImg(input){
 }
 
 function ovRemoveImg(){
-  ovImages=[];
+  ovImages=[]; ovSelIdx=null;
   const ex=document.querySelector('#carPreview .ov-grid'); if(ex) ex.remove();
   ovShowPanel();
   const inp=document.getElementById('ovImgInput'); if(inp) inp.value='';
 }
-function ovRemoveOne(i){ ovImages.splice(i,1); ovRedraw(); ovShowPanel(); }
+function ovRemoveOne(i){ ovImages.splice(i,1); ovSelIdx=null; ovRedraw(); ovShowPanel(); toast('사진 1장을 삭제했어요'); }
 
 // 장수 -> [열, 행]
 function ovGridDims(n){
@@ -1304,11 +1305,15 @@ function ovAttachDrag(grid){
     const p=ovPtrs.get(e.pointerId); ovPtrs.delete(e.pointerId);
     if(!p) return;
     const moved=Math.hypot(e.clientX-p.sx, e.clientY-p.sy);
-    // 짧게 톡 누르면 그 사진 삭제
-    if(moved<8 && Date.now()-p.t<350 && p.tg && p.tg.tagName==='IMG' && p.tg.dataset.idx!==undefined){
-      const i=parseInt(p.tg.dataset.idx);
-      ovRemoveOne(i);
-      toast('사진 1장을 삭제했어요');
+    // 짧게 톡 누르면 삭제 버튼 표시/숨김
+    if(moved<8 && Date.now()-p.t<350){
+      if(p.tg && p.tg.tagName==='IMG' && p.tg.dataset.idx!==undefined){
+        const i=parseInt(p.tg.dataset.idx);
+        ovSelIdx = (ovSelIdx===i) ? null : i;
+      } else {
+        ovSelIdx = null; // 빈 곳 누르면 선택 해제
+      }
+      ovRedraw();
     }
   };
   grid.onpointercancel=e=>{ ovPtrs.delete(e.pointerId); };
@@ -1325,7 +1330,13 @@ function ovRedraw(){
   if(ovState.x===null||ovState.y===null){ ovState.x=(100-ovState.scale)/2; ovState.y=(100-ovState.scale)/2; }
   if(!grid){ grid=document.createElement('div'); grid.className='ov-grid'; slideDiv.appendChild(grid); ovAttachDrag(grid); }
   grid.style.cssText=`position:absolute;left:${ovState.x}%;top:${ovState.y}%;width:${ovState.scale}%;height:${ovState.scale}%;display:grid;grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr);gap:${gapPx}px;padding:${gapPx}px;z-index:5;box-sizing:border-box;touch-action:none;cursor:move;`;
-  grid.innerHTML=ovImages.map((o,i)=>`<img src="${o.src}" data-idx="${i}" draggable="false" style="width:100%;height:100%;object-fit:cover;border-radius:${ovState.radius}px;display:block;-webkit-user-drag:none;user-select:none">`).join('');
+  grid.innerHTML=ovImages.map((o,i)=>{
+    const sel = ovSelIdx===i;
+    return `<div style="position:relative;overflow:visible;min-width:0;min-height:0">
+      <img src="${o.src}" data-idx="${i}" draggable="false" style="width:100%;height:100%;object-fit:cover;border-radius:${ovState.radius}px;display:block;-webkit-user-drag:none;user-select:none;${sel?'outline:2px solid #e05555;outline-offset:-2px;':''}">
+      ${sel?`<button onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();ovRemoveOne(${i})" style="position:absolute;top:4px;right:4px;width:30px;height:30px;border:none;border-radius:50%;background:#e05555;color:#fff;font-size:15px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:6;display:flex;align-items:center;justify-content:center">✕</button>`:''}
+    </div>`;
+  }).join('');
 }
 
 // 저장: 1080x1350 캔버스에 동일 그리드로 합성

@@ -1277,6 +1277,8 @@ function ovSetScale(v){
 }
 function ovAttachDrag(grid){
   grid.style.touchAction='none'; grid.style.cursor='move';
+  grid.style.webkitTouchCallout='none'; grid.style.webkitUserSelect='none'; grid.style.userSelect='none';
+  grid.oncontextmenu=e=>{ e.preventDefault(); return false; };
   grid.onpointerdown=e=>{ grid.setPointerCapture(e.pointerId); ovPtrs.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,t:Date.now(),tg:e.target}); e.preventDefault(); };
   grid.onpointermove=e=>{
     if(!ovPtrs.has(e.pointerId)) return;
@@ -1333,7 +1335,7 @@ function ovRedraw(){
   grid.innerHTML=ovImages.map((o,i)=>{
     const sel = ovSelIdx===i;
     return `<div style="position:relative;overflow:visible;min-width:0;min-height:0">
-      <img src="${o.src}" data-idx="${i}" draggable="false" style="width:100%;height:100%;object-fit:cover;border-radius:${ovState.radius}px;display:block;-webkit-user-drag:none;user-select:none;${sel?'outline:2px solid #e05555;outline-offset:-2px;':''}">
+      <img src="${o.src}" data-idx="${i}" draggable="false" style="width:100%;height:100%;object-fit:cover;border-radius:${ovState.radius}px;display:block;-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;${sel?'outline:2px solid #e05555;outline-offset:-2px;':''}">
       ${sel?`<button onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();ovRemoveOne(${i})" style="position:absolute;top:4px;right:4px;width:30px;height:30px;border:none;border-radius:50%;background:#e05555;color:#fff;font-size:15px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:6;display:flex;align-items:center;justify-content:center">✕</button>`:''}
     </div>`;
   }).join('');

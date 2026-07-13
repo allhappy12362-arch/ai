@@ -247,9 +247,7 @@ async function tryUnlock(){
     <button class="tab active nav-item" onclick="nav('blog')"><span class="t-icon">📝</span><span>블로그 글 생성</span></button>
     <button class="tab nav-item" onclick="nav('carousel')"><span class="t-icon">🎨</span><span>피드 만들기</span></button>
     <button class="tab nav-item" onclick="nav('retouch')"><span class="t-icon">✨</span><span>사진 보정</span></button>
-    <div class="nav-group-label">자동화</div>
-    <button class="tab nav-item" onclick="nav('schedule')"><span class="t-icon">📅</span><span>자동 업로드</span></button>
-    <div class="nav-group-label">희안헤어</div>
+        <div class="nav-group-label">희안헤어</div>
     <button class="tab nav-item" onclick="nav('jaryosil')"><span class="t-icon">📚</span><span>희안헤어 자료실</span></button>
     <div class="nav-group-label">설정</div>
     <button class="tab nav-item" onclick="nav('settings')"><span class="t-icon">⚙️</span><span>설정</span></button>
@@ -398,7 +396,6 @@ async function tryUnlock(){
           <div id="carResultActions" style="display:none;margin-top:12px">
             <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="generateCarousel()">🔄 다른 버전으로 재생성</button>
             <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="ovToggle()">🖼️ 내 사진 얹기</button>
-            <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="scheduleFromContent('', carState.caption, '인스타그램')">📅 예약에 추가</button>
             <button class="btn btn-black" style="width:100%" onclick="ovDownload()">💾 이미지로 저장</button>
           </div>
 
@@ -482,63 +479,7 @@ async function tryUnlock(){
   </div>
 
   <!-- AI IMAGE -->
-  <div class="page" id="page-schedule">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-size:12.5px;color:var(--gray3)">예약을 저장하면 이 기기에 보관되고, 올릴 차례가 되면 여기 상단에 떠요.</div>
-      <button class="btn btn-black" onclick="openScheduleModal(null)">+ 새 예약</button>
-    </div>
-    <div class="card" style="margin-bottom:16px;border-left:3px solid var(--black)">
-      <div class="card-hd">📌 지금 올릴 차례</div>
-      <div id="dueBoard"></div>
-    </div>
-    <div class="col2">
-      <div>
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <button class="btn btn-outline btn-sm" onclick="calPrev()">‹</button>
-            <div class="card-hd" id="calTitle" style="margin:0"></div>
-            <button class="btn btn-outline btn-sm" onclick="calNext()">›</button>
-          </div>
-          <div class="cal-hdr">
-            <div class="cal-lbl">월</div><div class="cal-lbl">화</div><div class="cal-lbl">수</div>
-            <div class="cal-lbl">목</div><div class="cal-lbl">금</div><div class="cal-lbl">토</div><div class="cal-lbl">일</div>
-          </div>
-          <div class="cal-grid" id="calGrid"></div>
-          <div class="card-note" style="margin-top:8px">날짜를 누르면 그 날 예약을 추가할 수 있어요.</div>
-        </div>
-      </div>
-      <div>
-        <div class="card">
-          <div class="card-hd">예정된 게시물</div>
-          <div class="sch-list" id="scheduledList"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 예약 추가/수정 모달 -->
-  <div id="scheduleModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center">
-    <div style="background:var(--white);border-radius:14px;padding:22px;width:min(440px,92vw);max-height:90vh;overflow:auto">
-      <div style="font-weight:700;font-size:16px;margin-bottom:14px">예약 게시물</div>
-      <input type="hidden" id="schModalId">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div><label style="font-size:12px;font-weight:600">날짜</label><input type="date" id="schDate" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></div>
-        <div><label style="font-size:12px;font-weight:600">시간</label><input type="time" id="schTime" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></div>
-      </div>
-      <div style="margin-bottom:10px"><label style="font-size:12px;font-weight:600">채널</label>
-        <select id="schChannel" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:inherit">
-          <option>인스타그램</option><option>스레드</option><option>네이버 블로그</option><option>기타</option>
-        </select>
-      </div>
-      <div style="margin-bottom:10px"><label style="font-size:12px;font-weight:600">제목</label><input type="text" id="schTitle" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></div>
-      <div style="margin-bottom:16px"><label style="font-size:12px;font-weight:600">내용</label><textarea id="schBody" style="width:100%;min-height:120px;padding:9px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></textarea></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn btn-outline" onclick="closeScheduleModal()">취소</button>
-        <button class="btn btn-black" onclick="submitSchedule()">저장</button>
-      </div>
-    </div>
-  </div>
-
+  
   <!-- 희안헤어 자료실 -->
   <div class="page" id="page-jaryosil">
     <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--white);">
@@ -578,7 +519,6 @@ const PAGE_META = {
   blog:{title:'블로그 글 생성',sub:'네이버 키워드 검색 및 경쟁력 분석으로 최적의 블로그 글을 생성합니다'},
   carousel:{title:'피드 만들기',sub:'인스타그램/스레드용 슬라이드 피드를 AI로 자동 생성합니다'},
   retouch:{title:'사진 보정',sub:'고객 사진을 ChatGPT로 자연스럽게 보정하는 전용 프롬프트를 제공합니다'},
-  schedule:{title:'자동 업로드',sub:'콘텐츠 발행 일정을 관리하고 예약 게시물을 설정합니다'},
   jaryosil:{title:'희안헤어 자료실',sub:'희안헤어 전용 자료 및 성장 나침반'},
   settings:{title:'설정',sub:'API 키 및 프로필을 설정합니다'},
 };
@@ -596,7 +536,6 @@ function nav(page){
   const m=PAGE_META[page];
   document.getElementById('topbarTitle').textContent=m.title;
   document.getElementById('topbarSub').textContent=m.sub;
-  if(page==='schedule') renderCalendar();
   if(page==='settings') checkSettingsKey();
   if(page==='blog') renderSamples();
   if(page==='carousel') renderCarouselSlide();
@@ -869,7 +808,6 @@ ${extra?`
     <div class="result-actions">
       <span style="font-size:12px;color:var(--gray3);align-self:center">글자수: ${bodyText.replace(/\s/g,'').length}자</span>
       <button class="btn btn-secondary" onclick="copyResultText(this)">📋 본문 복사</button>
-      <button class="btn btn-secondary" onclick="scheduleFromContent(document.getElementById('blogTitleText').textContent, window._blogText, '네이버 블로그')">📅 예약에 추가</button>
       <button class="btn btn-primary" onclick="generateBlog()">🔄 재생성</button>
     </div>
 `;
@@ -1056,138 +994,6 @@ function copyCarCaption(btn){
 
 
 // AI IMAGE
-// CALENDAR
-// ===== 예약/발행 (localStorage 기반 반자동) =====
-function getSchedules(){ try{return JSON.parse(localStorage.getItem('hh_schedules')||'[]');}catch{return [];} }
-function setSchedules(arr){ localStorage.setItem('hh_schedules', JSON.stringify(arr)); }
-function saveSchedule(item){
-  const arr=getSchedules();
-  if(item.id){ const i=arr.findIndex(x=>x.id===item.id); if(i>=0) arr[i]=item; else arr.push(item); }
-  else { item.id='sch_'+Date.now(); arr.push(item); }
-  setSchedules(arr); return item;
-}
-function deleteSchedule(id){ setSchedules(getSchedules().filter(x=>x.id!==id)); renderCalendar(); }
-function markPublished(id){
-  const arr=getSchedules(); const i=arr.findIndex(x=>x.id===id);
-  if(i>=0){ arr[i].status='발행완료'; setSchedules(arr); renderCalendar(); toast('발행 완료로 표시했어요'); }
-}
-
-let calYear, calMonth; // 0-indexed month
-function calKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function todayKey(){ return calKey(new Date()); }
-
-const CH_COLOR={'인스타그램':'#e1567c','스레드':'#4a5a3a','네이버 블로그':'#03c75a','기타':'#c4a96a'};
-const CH_URL={'인스타그램':'https://www.instagram.com/','스레드':'https://www.threads.net/','네이버 블로그':'https://blog.naver.com/'};
-
-function renderCalendar(){
-  if(calYear===undefined){ const t=new Date(); calYear=t.getFullYear(); calMonth=t.getMonth(); }
-  const grid=document.getElementById('calGrid');
-  const titleEl=document.getElementById('calTitle');
-  if(titleEl) titleEl.textContent=`${calYear}년 ${calMonth+1}월`;
-  const first=new Date(calYear,calMonth,1);
-  const startDay=(first.getDay()+6)%7; // 월요일 시작
-  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
-  const sch=getSchedules();
-  const byDay={};
-  sch.forEach(s=>{ if(s.date){ (byDay[s.date]=byDay[s.date]||[]).push(s); } });
-  let html='';
-  for(let i=0;i<startDay;i++) html+=`<div class="cal-day empty"></div>`;
-  for(let d=1;d<=daysInMonth;d++){
-    const key=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday=key===todayKey();
-    const items=byDay[key]||[];
-    const dots=items.slice(0,3).map(it=>`<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:${CH_COLOR[it.channel]||'#999'}"></span>`).join('');
-    html+=`<div class="cal-day${isToday?' today':''}${items.length?' has-post':''}" onclick="openScheduleModal(null,'${key}')" style="cursor:pointer">
-      <div>${d}</div><div style="display:flex;gap:2px;justify-content:center;margin-top:2px;min-height:5px">${dots}</div></div>`;
-  }
-  grid.innerHTML=html;
-  renderScheduleBoard();
-}
-function calPrev(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
-function calNext(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
-
-// "발행할 차례" 보드 + 전체 예약 목록
-function renderScheduleBoard(){
-  const sch=getSchedules().filter(s=>s.status!=='발행완료').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-  const tk=todayKey();
-  const due=sch.filter(s=>s.date<=tk);
-  const upcoming=sch.filter(s=>s.date>tk);
-  const dueEl=document.getElementById('dueBoard');
-  if(dueEl){
-    dueEl.innerHTML = due.length ? due.map(renderDueCard).join('') :
-      '<div style="font-size:13px;color:var(--gray3);padding:10px 0">지금 올릴 차례인 예약이 없어요.</div>';
-  }
-  const listEl=document.getElementById('scheduledList');
-  if(listEl){
-    listEl.innerHTML = upcoming.length ? upcoming.map(s=>`
-      <div class="scheduled-item">
-        <div class="scheduled-dot" style="background:${CH_COLOR[s.channel]||'#999'}"></div>
-        <div class="scheduled-info"><div class="s-title">${s.title||'(제목 없음)'}</div><div class="s-meta">${s.channel} · ${s.date} ${s.time||''}</div></div>
-        <div style="display:flex;gap:4px">
-          <button class="btn btn-outline btn-sm" onclick="openScheduleModal('${s.id}')">수정</button>
-          <button class="btn btn-outline btn-sm" onclick="deleteSchedule('${s.id}')">삭제</button>
-        </div>
-      </div>`).join('') :
-      '<div style="font-size:13px;color:var(--gray3);padding:10px 0">예정된 게시물이 없어요. "+ 새 예약"으로 추가하세요.</div>';
-  }
-}
-function renderDueCard(s){
-  const url=CH_URL[s.channel]||'';
-  return `<div style="border:1px solid var(--border);border-left:3px solid ${CH_COLOR[s.channel]||'#999'};border-radius:8px;padding:12px;margin-bottom:10px;background:var(--card2)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div style="font-weight:700;font-size:14px">${s.title||'(제목 없음)'}</div>
-      <span style="font-size:11px;color:var(--gray3)">${s.channel} · ${s.date} ${s.time||''}</span>
-    </div>
-    ${s.body?`<div style="font-size:12px;color:var(--ink);white-space:pre-wrap;max-height:60px;overflow:hidden;margin-bottom:8px;opacity:.8">${s.body.slice(0,120)}${s.body.length>120?'…':''}</div>`:''}
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn btn-secondary btn-sm" onclick="copySchedule('${s.id}',this)">📋 전체 복사</button>
-      ${url?`<a class="btn btn-secondary btn-sm" href="${url}" target="_blank" style="text-decoration:none">↗ ${s.channel} 열기</a>`:''}
-      <button class="btn btn-black btn-sm" onclick="markPublished('${s.id}')">✅ 발행 완료</button>
-    </div>
-  </div>`;
-}
-function copySchedule(id,btn){
-  const s=getSchedules().find(x=>x.id===id); if(!s) return;
-  const text=(s.title?s.title+'\n\n':'')+(s.body||'');
-  navigator.clipboard.writeText(text).then(()=>{ btn.textContent='✅ 복사됨'; setTimeout(()=>btn.textContent='📋 전체 복사',1500); });
-}
-
-// 예약 추가/수정 모달
-function openScheduleModal(id, presetDate){
-  const s = id ? getSchedules().find(x=>x.id===id) : {date:presetDate||todayKey(), time:'19:00', channel:'인스타그램', title:'', body:''};
-  document.getElementById('schModalId').value = s.id||'';
-  document.getElementById('schDate').value = s.date||todayKey();
-  document.getElementById('schTime').value = s.time||'19:00';
-  document.getElementById('schChannel').value = s.channel||'인스타그램';
-  document.getElementById('schTitle').value = s.title||'';
-  document.getElementById('schBody').value = s.body||'';
-  document.getElementById('scheduleModal').style.display='flex';
-}
-function closeScheduleModal(){ document.getElementById('scheduleModal').style.display='none'; }
-function submitSchedule(){
-  const item={
-    id: document.getElementById('schModalId').value||undefined,
-    date: document.getElementById('schDate').value,
-    time: document.getElementById('schTime').value,
-    channel: document.getElementById('schChannel').value,
-    title: document.getElementById('schTitle').value.trim(),
-    body: document.getElementById('schBody').value.trim(),
-    status:'예약됨'
-  };
-  if(!item.date){ toast('날짜를 골라주세요'); return; }
-  saveSchedule(item); closeScheduleModal(); renderCalendar(); toast('예약을 저장했어요');
-}
-
-// 생성한 콘텐츠를 예약으로 보내기
-function scheduleFromContent(title, body, channel){
-  openScheduleModal(null);
-  document.getElementById('schTitle').value=title||'';
-  document.getElementById('schBody').value=body||'';
-  if(channel) document.getElementById('schChannel').value=channel;
-  nav('schedule');
-  setTimeout(()=>document.getElementById('scheduleModal').style.display='flex',50);
-}
-
 // SETTINGS
 // SETTINGS
 function checkSettingsKey(){ /* 키는 서버 관리 - 할 일 없음 */ }

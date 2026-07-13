@@ -197,6 +197,36 @@ textarea{resize:vertical;min-height:90px;line-height:1.7;}
   .col2,.frow2,.frow3,.stat-grid{grid-template-columns:1fr;}
   .col3{grid-template-columns:1fr 1fr;}
 }
+
+/* MOBILE — 하단 탭바 */
+@media(max-width:600px){
+  .sidebar{
+    width:100%;min-height:0;top:auto;bottom:0;left:0;right:0;
+    border-right:none;border-top:1px solid var(--border);
+    flex-direction:row;overflow:visible;
+    box-shadow:0 -2px 12px rgba(0,0,0,.06);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .sidebar-logo,.sidebar-user,.nav-group-label{display:none;}
+  .sidebar-nav{display:flex;flex:1;padding:6px 4px;gap:2px;}
+  .tab{
+    flex:1;flex-direction:column;justify-content:center;gap:3px;
+    padding:8px 2px;margin:0;border-radius:10px;font-size:10px;font-weight:600;
+  }
+  .tab span:not(.t-icon){display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .tab .t-icon{font-size:20px;width:auto;}
+  .main{margin-left:0;padding:16px 14px calc(84px + env(safe-area-inset-bottom));max-width:100%;}
+  .page-hd h2{font-size:19px;}
+  .card{padding:16px;border-radius:11px;}
+  input,select,textarea{font-size:16px !important;}
+  .btn{min-height:42px;}
+  .result-actions{flex-wrap:wrap;}
+  #tmplGallery{grid-template-columns:repeat(3,1fr) !important;}
+  #page-jaryosil iframe{height:calc(100vh - 170px) !important;min-height:400px !important;}
+  .car-preview{min-height:220px;}
+  .chips{gap:6px;}
+  .chip{padding:8px 12px;}
+}
 </style>
 </head>
 <body>

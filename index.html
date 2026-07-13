@@ -1309,7 +1309,7 @@ function ovAttachDrag(grid){
     const moved=Math.hypot(e.clientX-p.sx, e.clientY-p.sy);
     // 짧게 톡 누르면 삭제 버튼 표시/숨김
     if(moved<8 && Date.now()-p.t<350){
-      if(p.tg && p.tg.tagName==='IMG' && p.tg.dataset.idx!==undefined){
+      if(p.tg && p.tg.dataset && p.tg.dataset.idx!==undefined){
         const i=parseInt(p.tg.dataset.idx);
         ovSelIdx = (ovSelIdx===i) ? null : i;
       } else {
@@ -1335,7 +1335,7 @@ function ovRedraw(){
   grid.innerHTML=ovImages.map((o,i)=>{
     const sel = ovSelIdx===i;
     return `<div style="position:relative;overflow:visible;min-width:0;min-height:0">
-      <img src="${o.src}" data-idx="${i}" draggable="false" style="width:100%;height:100%;object-fit:cover;border-radius:${ovState.radius}px;display:block;-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;${sel?'outline:2px solid #e05555;outline-offset:-2px;':''}">
+      <div data-idx="${i}" style="width:100%;height:100%;border-radius:${ovState.radius}px;background-image:url('${o.src}');background-size:cover;background-position:center;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;${sel?'outline:2px solid #e05555;outline-offset:-2px;':''}"></div>
       ${sel?`<button onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();ovRemoveOne(${i})" style="position:absolute;top:4px;right:4px;width:30px;height:30px;border:none;border-radius:50%;background:#e05555;color:#fff;font-size:15px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:6;display:flex;align-items:center;justify-content:center">✕</button>`:''}
     </div>`;
   }).join('');

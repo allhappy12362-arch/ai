@@ -415,6 +415,8 @@ async function tryUnlock(){
               <div id="ovThumbs" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
                 <div>
+                  <label>사진 크기 <span id="ovScaleVal" style="font-weight:400;color:var(--gray3)">100%</span></label>
+                  <input type="range" id="ovScale" min="40" max="100" value="100" oninput="ovState.scale=parseInt(this.value);ovRedraw();document.getElementById('ovScaleVal').textContent=this.value+'%'" style="width:100%;accent-color:var(--black)">
                   <label>사진 간격 <span id="ovGapVal" style="font-weight:400;color:var(--gray3)">6</span></label>
                   <input type="range" id="ovGap" min="0" max="30" value="6" oninput="ovState.gap=parseInt(this.value);ovRedraw();document.getElementById('ovGapVal').textContent=this.value" style="width:100%;accent-color:var(--black)">
                 </div>
@@ -1381,7 +1383,7 @@ function deleteMyTemplate(idx){
 // ===== 오버레이 사진 (드래그/리사이즈) =====
 // ===== 오버레이 사진 (다중 · 자동 그리드) =====
 let ovImages = [];                 // {src, img} 배열, 최대 10
-let ovState = { gap:6, radius:0 }; // 간격(px, 1080폭 기준 환산), 둥글기(%)
+let ovState = { gap:6, radius:0, scale:100 }; // 간격, 둥글기, 크기(%)
 
 function ovToggle(){
   const w=document.getElementById('ovInlineWrap');
@@ -1448,7 +1450,9 @@ function ovRedraw(){
   const [cols,rows]=ovGridDims(ovImages.length);
   const gapPx=(ovState.gap/1080)*slideDiv.offsetWidth; // 1080 기준 비율 환산
   if(!grid){ grid=document.createElement('div'); grid.className='ov-grid'; slideDiv.appendChild(grid); }
-  grid.style.cssText=`position:absolute;inset:0;display:grid;grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr);gap:${gapPx}px;padding:${gapPx}px;z-index:5;box-sizing:border-box;`;
+  const sc=ovState.scale/100;
+  const inset=((1-sc)/2*100).toFixed(2)+'%';
+  grid.style.cssText=`position:absolute;top:${inset};left:${inset};width:${(sc*100).toFixed(2)}%;height:${(sc*100).toFixed(2)}%;display:grid;grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr);gap:${gapPx}px;padding:${gapPx}px;z-index:5;box-sizing:border-box;`;
   grid.innerHTML=ovImages.map(o=>`<img src="${o.src}" style="width:100%;height:100%;object-fit:cover;border-radius:${ovState.radius}px;display:block">`).join('');
 }
 
@@ -1483,12 +1487,15 @@ function ovDownload(){
     if(ovImages.length){
       const [cols,rows]=ovGridDims(ovImages.length);
       const gap=ovState.gap;
-      const cellW=(cw-gap*(cols+1))/cols;
-      const cellH=(ch-gap*(rows+1))/rows;
+      const sc=ovState.scale/100;
+      const areaW=cw*sc, areaH=ch*sc;
+      const offX=(cw-areaW)/2, offY=(ch-areaH)/2;
+      const cellW=(areaW-gap*(cols+1))/cols;
+      const cellH=(areaH-gap*(rows+1))/rows;
       const r=(ovState.radius/40)*Math.min(cellW,cellH)*0.4; // 미리보기 비율과 근사
       ovImages.forEach((o,idx)=>{
         const c=idx%cols, rr=Math.floor(idx/cols);
-        const dx=gap+c*(cellW+gap), dy=gap+rr*(cellH+gap);
+        const dx=offX+gap+c*(cellW+gap), dy=offY+gap+rr*(cellH+gap);
         coverDraw(o.img,dx,dy,cellW,cellH,r);
       });
     }
